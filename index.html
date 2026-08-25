@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grand Royal Citadel 3D</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0d131a;
+      font-family: 'Segoe UI', 'Sarabun', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+    #webgl-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    /* UI Overlay */
+    .ui-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      color: #f8fafc;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .castle-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #fef08a, #ca8a04, #e2e8f0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+    .castle-subtitle {
+      font-size: 13px;
+      color: #cbd5e1;
+      opacity: 0.9;
+    }
+    /* Controls Panel */
+    .controls-panel {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 10px 18px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 10;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #f1f5f9;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover {
+      background: rgba(217, 119, 6, 0.8);
+      border-color: #f59e0b;
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+    .btn.active {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      border-color: #fcd34d;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+    }
+    /* Quick View Presets */
+    .view-presets {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 10;
+    }
+    .preset-btn {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 7px 14px;
+      font-size: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: right;
+    }
+    .preset-btn:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: #fbbf24;
+      color: #fbbf24;
+    }
+    /* Loading screen */
+    #loader {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #090d16;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      color: #e2e8f0;
+      transition: opacity 0.6s ease;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #f59e0b;
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+      margin-bottom: 16px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .hint {
+      position: absolute;
+      bottom: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      pointer-events: none;
+      background: rgba(0,0,0,0.4);
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+    @media (max-width: 600px) {
+      .controls-panel {
+        bottom: 10px;
+        padding: 6px 10px;
+        gap: 6px;
+      }
+      .btn {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+      .castle-title {
+        font-size: 18px;
+      }
+      .view-presets {
+        top: auto;
+        bottom: 68px;
+        right: 10px;
+      }
+      .preset-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+      }
+      .hint { display: none; }
+    }
+  </style>
+  <!-- Three.js and OrbitControls via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+  <div id="loader">
+    <div class="spinner"></div>
+    <div style="font-weight:600; font-size:16px; color:#fcd34d;">กำลังเนรมิตสถาปัตยกรรมปราสาทหิน...</div>
+    <div style="font-size:12px; color:#94a3b8; margin-top:6px;">Generating Procedural Textures & Landscape</div>
+  </div>
+
+  <div class="ui-overlay">
+    <div class="castle-title">🏰 พระราชวังแกรนด์ชาโตว์ (Grand Royal Citadel)</div>
+    <div class="castle-subtitle">สถาปัตยกรรมหินโบราณ • ยอดปราสาทสีรอยัลแซฟไฟร์ • สวนพฤกษศาสตร์หลวง</div>
+  </div>
+
+  <div class="view-presets">
+    <button class="preset-btn" onclick="setView('front')">มุมมองหลัก (Grand Entrance)</button>
+    <button class="preset-btn" onclick="setView('garden')">มุมสวนหลวง (Royal Garden)</button>
+    <button class="preset-btn" onclick="setView('spires')">ยอดปราสาท (High Towers)</button>
+    <button class="preset-btn" onclick="setView('top')">มุมสูง (Bird's Eye)</button>
+  </div>
+
+  <div class="hint">🖱️ ลากเมาส์เพื่อหมุนมุมมอง • เลื่อนลูกกลิ้งเพื่อซูม • คลิกขวาเพื่อแพนมุมมอง</div>
+
+  <div class="controls-panel">
+    <button class="btn active" id="btn-sun" onclick="setLighting('day')">☀️ กลางวัน (Daylight)</button>
+    <button class="btn" id="btn-sunset" onclick="setLighting('sunset')">🌅 อัสดง (Sunset)</button>
+    <button class="btn" id="btn-night" onclick="setLighting('night')">🌙 ราตรี (Night)</button>
+    <button class="btn" id="btn-rotate" onclick="toggleAutoRotate()">🔄 หมุนอัตโนมัติ (On)</button>
+  </div>
+
+  <div id="webgl-container"></div>
+
+  <script>
+    // ==========================================
+    // 1. PROCEDURAL TEXTURE GENERATOR ENGINE
+    // ==========================================
+    const TextureGenerator = {
+      // 1.1 ลายหินปราสาทโบราณ มีมิติ รอยตะไคร่ และร่องปูนยาแนว
+      createStoneWallTexture: function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024;
+        canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#7a7672';
+        ctx.fillRect(0, 0, 1024, 1024);
+
+        const rows = 16;
+        const rowHeight = 1024 / rows;
+
+        for (let r = 0; r < rows; r++) {
+          const y = r * rowHeight;
+          const cols = 8;
+          const colWidth = 1024 / cols;
+          const offset = (r % 2 === 0) ? 0 : colWidth / 2;
+
+          for (let c = -1; c <= cols + 1; c++) {
+            const x = c * colWidth + offset;
+            const shade = 105 + Math.floor((Math.random() - 0.5) * 45);
+            const warm = Math.floor((Math.random() - 0.5) * 12);
+            ctx.fillStyle = `rgb(${shade + warm + 15}, ${shade + 10}, ${shade - 5})`;
+            ctx.fillRect(x + 3, y + 3, colWidth - 6, rowHeight - 6);
+
+            for (let i = 0; i < 90; i++) {
+              const nx = x + 3 + Math.random() * (colWidth - 6);
+              const ny = y + 3 + Math.random() * (rowHeight - 6);
+              const nsize = 1 + Math.random() * 4;
+              const nAlpha = 0.15 + Math.random() * 0.25;
+              const isDark = Math.random() > 0.45;
+              ctx.fillStyle = isDark ? `rgba(40,35,30,${nAlpha})` : `rgba(220,215,200,${nAlpha})`;
+              ctx.fillRect(nx, ny, nsize, nsize);
+            }
+
+            if (Math.random() > 0.4) {
+              ctx.fillStyle = 'rgba(45, 60, 35, 0.25)';
+              ctx.fillRect(x + 3, y + rowHeight - 8, colWidth - 6, 5);
+            }
+          }
+        }
+
+        ctx.strokeStyle = '#2b2622';
+        ctx.lineWidth = 6;
+        for (let r = 0; r <= rows; r++) {
+          ctx.beginPath();
+          ctx.moveTo(0, r * rowHeight);
+          ctx.lineTo(1024, r * rowHeight);
+          ctx.stroke();
+        }
+        for (let r = 0; r < rows; r++) {
+          const y = r * rowHeight;
+          const cols = 8;
+          const colWidth = 1024 / cols;
+          const offset = (r % 2 === 0) ? 0 : colWidth / 2;
+          for (let c = -1; c <= cols + 1; c++) {
+            const x = c * colWidth + offset;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + rowHeight);
+            ctx.stroke();
+          }
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        return texture;
+      },
+
+      // 1.2 แผ่นกระเบื้องหลังคาสีรอยัลแซฟไฟร์โอ่อ่า
+      createRoofTileTexture: function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, 0, 512, 512);
+
+        const rows = 24;
+        const rowH = 512 / rows;
+        for (let r = 0; r < rows; r++) {
+          const y = r * rowH;
+          const cols = 12;
+          const colW = 512 / cols;
+          const offset = (r % 2 === 0) ? 0 : colW / 2;
+
+          for (let c = -1; c <= cols + 1; c++) {
+            const x = c * colW + offset;
+            const grad = ctx.createLinearGradient(x, y, x, y + rowH);
+            const varHue = Math.floor((Math.random() - 0.5) * 15);
+            grad.addColorStop(0, `rgb(${25 + varHue}, ${45 + varHue}, ${85 + varHue})`);
+            grad.addColorStop(0.7, `rgb(${18 + varHue}, ${32 + varHue}, ${65 + varHue})`);
+            grad.addColorStop(1, '#0f172a');
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(x + 1, y);
+            ctx.lineTo(x + colW - 1, y);
+            ctx.lineTo(x + colW - 1, y + rowH - 2);
+            ctx.quadraticCurveTo(x + colW / 2, y + rowH + 3, x + 1, y + rowH - 2);
+            ctx.closePath();
+            ctx.fill();
+
+            if (r % 6 === 0) {
+              ctx.strokeStyle = 'rgba(217, 160, 40, 0.4)';
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+            }
+          }
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        return texture;
+      },
+
+      // 1.3 ลายสนามหญ้าเขียวขจี
+      createGrassTexture: function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#2d5a27';
+        ctx.fillRect(0, 0, 512, 512);
+
+        for (let i = 0; i < 20000; i++) {
+          const x = Math.random() * 512;
+          const y = Math.random() * 512;
+          const g = 80 + Math.floor(Math.random() * 80);
+          const r = 25 + Math.floor(Math.random() * 35);
+          const b = 20 + Math.floor(Math.random() * 30);
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.8)`;
+          ctx.fillRect(x, y, 2, 3);
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        return texture;
+      },
+
+      // 1.4 แผ่นหินปูทางเดินสวน
+      createCobblestoneTexture: function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#3a342f';
+        ctx.fillRect(0, 0, 512, 512);
+
+        for (let i = 0; i < 300; i++) {
+          const cx = Math.random() * 512;
+          const cy = Math.random() * 512;
+          const rx = 8 + Math.random() * 14;
+          const ry = 8 + Math.random() * 14;
+          const shade = 120 + Math.floor((Math.random() - 0.5) * 40);
+          ctx.fillStyle = `rgb(${shade + 10}, ${shade + 5}, ${shade - 5})`;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#221e1a';
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        return texture;
+      },
+
+      // 1.5 Bump Map สร้างมิติความนูนต่ำ
+      createBumpTexture: function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#808080';
+        ctx.fillRect(0, 0, 512, 512);
+
+        for (let i = 0; i < 15000; i++) {
+          const x = Math.random() * 512;
+          const y = Math.random() * 512;
+          const v = Math.random() > 0.5 ? 255 : 0;
+          ctx.fillStyle = `rgba(${v}, ${v}, ${v}, ${0.1 + Math.random() * 0.25})`;
+          ctx.fillRect(x, y, 2 + Math.random() * 3, 2 + Math.random() * 3);
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        return texture;
+      }
+    };
+
+    // ==========================================
+    // 2. THREE.JS SCENE SETUP
+    // ==========================================
+    const container = document.getElementById('webgl-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xdbeafe);
+    scene.fog = new THREE.FogExp2(0xdbeafe, 0.0075);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.5, 600);
+    camera.position.set(0, 32, 75);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2 - 0.02;
+    controls.minDistance = 15;
+    controls.maxDistance = 180;
+    controls.target.set(0, 14, 0);
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.7;
+
+    // ==========================================
+    // 3. LIGHTING SYSTEM
+    // ==========================================
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+    scene.add(ambientLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x3f382a, 0.55);
+    scene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight(0xfffaed, 1.4);
+    sunLight.position.set(60, 90, 50);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 10;
+    sunLight.shadow.camera.far = 250;
+    const d = 55;
+    sunLight.shadow.camera.left = -d;
+    sunLight.shadow.camera.right = d;
+    sunLight.shadow.camera.top = d;
+    sunLight.shadow.camera.bottom = -d;
+    sunLight.shadow.bias = -0.0003;
+    scene.add(sunLight);
+
+    const torchLights = [];
+    function addTorchLight(x, y, z) {
+      const pLight = new THREE.PointLight(0xff9922, 1.2, 16, 1.5);
+      pLight.position.set(x, y, z);
+      scene.add(pLight);
+      torchLights.push({ light: pLight, baseIntensity: 1.2, x, y, z });
+
+      const sconceGeo = new THREE.CylinderGeometry(0.1, 0.2, 0.5, 6);
+      const sconceMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.3 });
+      const sconce = new THREE.Mesh(sconceGeo, sconceMat);
+      sconce.position.set(x, y - 0.2, z);
+      scene.add(sconce);
+
+      const flameGeo = new THREE.SphereGeometry(0.2, 8, 8);
+      const flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa33 });
+      const flame = new THREE.Mesh(flameGeo, flameMat);
+      flame.position.set(x, y + 0.1, z);
+      scene.add(flame);
+    }
+
+    // ==========================================
+    // 4. SHARED MATERIALS
+    // ==========================================
+    const bumpTex = TextureGenerator.createBumpTexture();
+    bumpTex.repeat.set(4, 4);
+
+    const stoneTex = TextureGenerator.createStoneWallTexture();
+    stoneTex.repeat.set(4, 4);
+    const stoneMaterial = new THREE.MeshStandardMaterial({
+      map: stoneTex,
+      bumpMap: bumpTex,
+      bumpScale: 0.08,
+      roughness: 0.82,
+      metalness: 0.05
+    });
+
+    const darkStoneTex = TextureGenerator.createStoneWallTexture();
+    darkStoneTex.repeat.set(2, 2);
+    const trimStoneMaterial = new THREE.MeshStandardMaterial({
+      map: darkStoneTex,
+      bumpMap: bumpTex,
+      bumpScale: 0.05,
+      roughness: 0.75,
+      color: 0xc8c3bc
+    });
+
+    const roofTex = TextureGenerator.createRoofTileTexture();
+    roofTex.repeat.set(3, 3);
+    const grandRoofMaterial = new THREE.MeshStandardMaterial({
+      map: roofTex,
+      bumpMap: bumpTex,
+      bumpScale: 0.05,
+      roughness: 0.35,
+      metalness: 0.25,
+      color: 0x2a4365
+    });
+
+    const goldMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      metalness: 0.9,
+      roughness: 0.2
+    });
+
+    const woodMaterial = new THREE.MeshStandardMaterial({
+      color: 0x452311,
+      roughness: 0.8,
+      bumpMap: bumpTex,
+      bumpScale: 0.03
+    });
+
+    const waterMaterial = new THREE.MeshStandardMaterial({
+      color: 0x0284c7,
+      roughness: 0.1,
+      metalness: 0.8,
+      transparent: true,
+      opacity: 0.85
+    });
+
+    // ==========================================
+    // 5. CASTLE ARCHITECTURE
+    // ==========================================
+    const castleGroup = new THREE.Group();
+    scene.add(castleGroup);
+
+    // ฐานหิน
+    const baseGeo = new THREE.BoxGeometry(46, 3.5, 46);
+    const baseMesh = new THREE.Mesh(baseGeo, stoneMaterial);
+    baseMesh.position.y = 1.75;
+    baseMesh.receiveShadow = true;
+    baseMesh.castShadow = true;
+    castleGroup.add(baseMesh);
+
+    // บันไดหิน
+    for (let s = 0; s < 5; s++) {
+      const step = new THREE.Mesh(
+        new THREE.BoxGeometry(16 - s * 0.8, 0.7, 10 - s * 1.4),
+        trimStoneMaterial
+      );
+      step.position.set(0, 0.35 + s * 0.7, 24 + s * 0.7);
+      step.receiveShadow = true;
+      step.castShadow = true;
+      castleGroup.add(step);
+    }
+
+    // หอกลางปราสาท
+    const keepGeo = new THREE.BoxGeometry(18, 22, 18);
+    const keepMesh = new THREE.Mesh(keepGeo, stoneMaterial);
+    keepMesh.position.y = 14;
+    keepMesh.castShadow = true;
+    keepMesh.receiveShadow = true;
+    castleGroup.add(keepMesh);
+
+    const keepRoofGeo = new THREE.ConeGeometry(13.5, 14, 4);
+    const keepRoof = new THREE.Mesh(keepRoofGeo, grandRoofMaterial);
+    keepRoof.rotation.y = Math.PI / 4;
+    keepRoof.position.y = 25 + 7;
+    keepRoof.castShadow = true;
+    castleGroup.add(keepRoof);
+
+    const keepFinial = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.4, 5, 8), goldMaterial);
+    keepFinial.position.y = 25 + 14 + 2.5;
+    keepFinial.castShadow = true;
+    castleGroup.add(keepFinial);
+
+    const keepOrb = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 12), goldMaterial);
+    keepOrb.position.y = 25 + 14 + 1;
+    castleGroup.add(keepOrb);
+
+    // หอคอย 4 มุม
+    function createRoundTower(x, z, radius, height, roofHeight) {
+      const tower = new THREE.Group();
+
+      const towerGeo = new THREE.CylinderGeometry(radius, radius * 1.08, height, 20);
+      const towerMesh = new THREE.Mesh(towerGeo, stoneMaterial);
+      towerMesh.position.y = height / 2;
+      towerMesh.castShadow = true;
+      towerMesh.receiveShadow = true;
+      tower.add(towerMesh);
+
+      const corbelGeo = new THREE.CylinderGeometry(radius * 1.2, radius * 0.95, 1.6, 20);
+      const corbelMesh = new THREE.Mesh(corbelGeo, trimStoneMaterial);
+      corbelMesh.position.y = height;
+      corbelMesh.castShadow = true;
+      corbelMesh.receiveShadow = true;
+      tower.add(corbelMesh);
+
+      const merlonCount = 10;
+      for (let i = 0; i < merlonCount; i++) {
+        const angle = (i / merlonCount) * Math.PI * 2;
+        const mx = Math.cos(angle) * (radius * 1.15);
+        const mz = Math.sin(angle) * (radius * 1.15);
+        const merlon = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.3, 0.7), stoneMaterial);
+        merlon.position.set(mx, height + 1.2, mz);
+        merlon.rotation.y = -angle;
+        merlon.castShadow = true;
+        tower.add(merlon);
+      }
+
+      const spireGeo = new THREE.ConeGeometry(radius * 1.25, roofHeight, 20);
+      const spire = new THREE.Mesh(spireGeo, grandRoofMaterial);
+      spire.position.y = height + roofHeight / 2 + 0.8;
+      spire.castShadow = true;
+      tower.add(spire);
+
+      const spireFinial = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.2, 3.5, 8), goldMaterial);
+      spireFinial.position.y = height + roofHeight + 1.75;
+      tower.add(spireFinial);
+
+      const spireSphere = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), goldMaterial);
+      spireSphere.position.y = height + roofHeight + 0.6;
+      tower.add(spireSphere);
+
+      for (let h = 8; h <= height - 6; h += 7) {
+        const winGeo = new THREE.BoxGeometry(0.8, 2.2, 0.4);
+        const winMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.8 });
+        const win = new THREE.Mesh(winGeo, winMat);
+        win.position.set(0, h, radius + 0.05);
+        tower.add(win);
+      }
+
+      tower.position.set(x, 3.5, z);
+      return tower;
+    }
+
+    [
+      { x: -16, z: -16 },
+      { x: 16, z: -16 },
+      { x: -16, z: 16 },
+      { x: 16, z: 16 }
+    ].forEach(pos => {
+      castleGroup.add(createRoundTower(pos.x, pos.z, 4.5, 26, 15));
+    });
+
+    // ป้อมซุ้มประตูหน้า
+    castleGroup.add(createRoundTower(-6, 20, 3.2, 18, 11));
+    castleGroup.add(createRoundTower(6, 20, 3.2, 18, 11));
+
+    const gateArch = new THREE.Mesh(new THREE.BoxGeometry(6.5, 12, 4), stoneMaterial);
+    gateArch.position.set(0, 9.5, 20);
+    gateArch.castShadow = true;
+    gateArch.receiveShadow = true;
+    castleGroup.add(gateArch);
+
+    const gateDoor = new THREE.Mesh(new THREE.BoxGeometry(4.2, 7, 0.8), woodMaterial);
+    gateDoor.position.set(0, 7, 20.3);
+    gateDoor.castShadow = true;
+    castleGroup.add(gateDoor);
+
+    addTorchLight(-3.6, 8, 22.5);
+    addTorchLight(3.6, 8, 22.5);
+
+    // กำแพงล้อมรอบ
+    function createCurtainWall(x, y, z, width, height, depth, rotY = 0) {
+      const wallGroup = new THREE.Group();
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), stoneMaterial);
+      wall.position.y = height / 2;
+      wall.castShadow = true;
+      wall.receiveShadow = true;
+      wallGroup.add(wall);
+
+      const walkway = new THREE.Mesh(new THREE.BoxGeometry(width, 0.8, depth + 0.8), trimStoneMaterial);
+      walkway.position.y = height;
+      wallGroup.add(walkway);
+
+      const mCount = Math.floor(width / 2.2);
+      const stepW = width / mCount;
+      for (let i = 0; i < mCount; i++) {
+        const mx = -width / 2 + stepW * (i + 0.5);
+        const m = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 0.5), stoneMaterial);
+        m.position.set(mx, height + 0.55, depth / 2);
+        m.castShadow = true;
+        wallGroup.add(m);
+      }
+
+      wallGroup.position.set(x, y, z);
+      wallGroup.rotation.y = rotY;
+      return wallGroup;
+    }
+
+    castleGroup.add(createCurtainWall(0, 3.5, -16, 28, 15, 3.5));
+    castleGroup.add(createCurtainWall(-16, 3.5, 0, 28, 15, 3.5, Math.PI / 2));
+    castleGroup.add(createCurtainWall(16, 3.5, 0, 28, 15, 3.5, Math.PI / 2));
+    castleGroup.add(createCurtainWall(-11, 3.5, 17, 7, 15, 3.5));
+    castleGroup.add(createCurtainWall(11, 3.5, 17, 7, 15, 3.5));
+
+    addTorchLight(-16, 12, 14);
+    addTorchLight(16, 12, 14);
+    addTorchLight(-16, 12, -14);
+    addTorchLight(16, 12, -14);
+
+    // ==========================================
+    // 6. LANDSCAPING & ROYAL GARDEN
+    // ==========================================
+    const landscapeGroup = new THREE.Group();
+    scene.add(landscapeGroup);
+
+    // สนามหญ้า
+    const grassTex = TextureGenerator.createGrassTexture();
+    grassTex.repeat.set(30, 30);
+    const grassMat = new THREE.MeshStandardMaterial({
+      map: grassTex,
+      roughness: 0.88,
+      metalness: 0.05
+    });
+
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(280, 280, 1, 1), grassMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.05;
+    ground.receiveShadow = true;
+    landscapeGroup.add(ground);
+
+    // คูน้ำสะท้อนเงา
+    const moat = new THREE.Mesh(new THREE.RingGeometry(25.5, 36, 40), waterMaterial);
+    moat.rotation.x = -Math.PI / 2;
+    moat.position.y = 0.08;
+    moat.receiveShadow = true;
+    landscapeGroup.add(moat);
+
+    const innerRim = new THREE.Mesh(new THREE.RingGeometry(25.0, 25.6, 40), trimStoneMaterial);
+    innerRim.rotation.x = -Math.PI / 2;
+    innerRim.position.y = 0.12;
+    landscapeGroup.add(innerRim);
+
+    const outerRim = new THREE.Mesh(new THREE.RingGeometry(35.9, 36.6, 40), trimStoneMaterial);
+    outerRim.rotation.x = -Math.PI / 2;
+    outerRim.position.y = 0.12;
+    landscapeGroup.add(outerRim);
+
+    // สะพานหินและถนนทางเดิน
+    const cobbleTex = TextureGenerator.createCobblestoneTexture();
+    cobbleTex.repeat.set(2, 6);
+    const bridgeMat = new THREE.MeshStandardMaterial({
+      map: cobbleTex,
+      bumpMap: bumpTex,
+      bumpScale: 0.06,
+      roughness: 0.8
+    });
+
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(9, 1.2, 16), bridgeMat);
+    bridge.position.set(0, 0.6, 31);
+    bridge.receiveShadow = true;
+    bridge.castShadow = true;
+    landscapeGroup.add(bridge);
+
+    const railL = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 16), trimStoneMaterial);
+    railL.position.set(-4.2, 1.6, 31);
+    railL.castShadow = true;
+    landscapeGroup.add(railL);
+
+    const railR = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 16), trimStoneMaterial);
+    railR.position.set(4.2, 1.6, 31);
+    railR.castShadow = true;
+    landscapeGroup.add(railR);
+
+    cobbleTex.repeat.set(2, 15);
+    const promenade = new THREE.Mesh(new THREE.PlaneGeometry(10, 70), bridgeMat);
+    promenade.rotation.x = -Math.PI / 2;
+    promenade.position.set(0, 0.02, 70);
+    promenade.receiveShadow = true;
+    landscapeGroup.add(promenade);
+
+    // สวนพุ่มไม้สไตล์ฝรั่งเศส (Parterres)
+    const hedgeMat = new THREE.MeshStandardMaterial({
+      color: 0x1e5e22,
+      roughness: 0.9,
+      bumpMap: bumpTex,
+      bumpScale: 0.04
+    });
+
+    function createGardenParterre(centerX, centerZ) {
+      const parterre = new THREE.Group();
+      const size = 18;
+      const hH = 1.1;
+      const hW = 1.0;
+
+      const hN = new THREE.Mesh(new THREE.BoxGeometry(size, hH, hW), hedgeMat);
+      hN.position.set(0, hH / 2, -size / 2);
+      hN.castShadow = true;
+      parterre.add(hN);
+
+      const hS = new THREE.Mesh(new THREE.BoxGeometry(size, hH, hW), hedgeMat);
+      hS.position.set(0, hH / 2, size / 2);
+      hS.castShadow = true;
+      parterre.add(hS);
+
+      const hW_ = new THREE.Mesh(new THREE.BoxGeometry(hW, hH, size), hedgeMat);
+      hW_.position.set(-size / 2, hH / 2, 0);
+      hW_.castShadow = true;
+      parterre.add(hW_);
+
+      const hE_ = new THREE.Mesh(new THREE.BoxGeometry(hW, hH, size), hedgeMat);
+      hE_.position.set(size / 2, hH / 2, 0);
+      hE_.castShadow = true;
+      parterre.add(hE_);
+
+      const bed1 = new THREE.Mesh(new THREE.BoxGeometry(6, 0.4, 6), new THREE.MeshStandardMaterial({ color: 0xdb2777, roughness: 0.7 }));
+      bed1.position.set(-3.5, 0.2, -3.5);
+      bed1.receiveShadow = true;
+      parterre.add(bed1);
+
+      const bed2 = new THREE.Mesh(new THREE.BoxGeometry(6, 0.4, 6), new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.7 }));
+      bed2.position.set(3.5, 0.2, 3.5);
+      bed2.receiveShadow = true;
+      parterre.add(bed2);
+
+      const urnBase = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 1.5, 12), trimStoneMaterial);
+      urnBase.position.set(0, 0.75, 0);
+      urnBase.castShadow = true;
+      parterre.add(urnBase);
+
+      const urnTop = new THREE.Mesh(new THREE.ConeGeometry(1.4, 1.8, 12), hedgeMat);
+      urnTop.position.set(0, 2.2, 0);
+      urnTop.castShadow = true;
+      parterre.add(urnTop);
+
+      parterre.position.set(centerX, 0, centerZ);
+      return parterre;
+    }
+
+    landscapeGroup.add(createGardenParterre(-24, 55));
+    landscapeGroup.add(createGardenParterre(24, 55));
+    landscapeGroup.add(createGardenParterre(-48, 55));
+    landscapeGroup.add(createGardenParterre(48, 55));
+
+    // ต้นสนไซเปรสทรงสูง
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2714, roughness: 0.9 });
+    const foliageMat = new THREE.MeshStandardMaterial({
+      color: 0x1b4324,
+      roughness: 0.85,
+      bumpMap: bumpTex,
+      bumpScale: 0.05
+    });
+
+    function createCypressTree(x, z, scale = 1.0) {
+      const tree = new THREE.Group();
+      
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35 * scale, 0.5 * scale, 3.5 * scale, 8), trunkMat);
+      trunk.position.y = (3.5 * scale) / 2;
+      trunk.castShadow = true;
+      tree.add(trunk);
+
+      const c1 = new THREE.Mesh(new THREE.ConeGeometry(2.0 * scale, 6 * scale, 10), foliageMat);
+      c1.position.y = 4.5 * scale;
+      c1.castShadow = true;
+      tree.add(c1);
+
+      const c2 = new THREE.Mesh(new THREE.ConeGeometry(1.6 * scale, 5 * scale, 10), foliageMat);
+      c2.position.y = 7.2 * scale;
+      c2.castShadow = true;
+      tree.add(c2);
+
+      const c3 = new THREE.Mesh(new THREE.ConeGeometry(1.1 * scale, 4 * scale, 10), foliageMat);
+      c3.position.y = 9.5 * scale;
+      c3.castShadow = true;
+      tree.add(c3);
+
+      tree.position.set(x, 0, z);
+      return tree;
+    }
+
+    for (let z = 42; z <= 95; z += 13) {
+      landscapeGroup.add(createCypressTree(-7, z, 0.95));
+      landscapeGroup.add(createCypressTree(7, z, 0.95));
+    }
+
+    [
+      [-42, 10], [-48, -15], [-40, -35], [0, -48], [40, -35], [48, -15], [42, 10],
+      [-55, 30], [55, 30], [-60, 75], [60, 75], [-20, 85], [20, 85]
+    ].forEach(([tx, tz]) => {
+      const s = 1.1 + Math.random() * 0.4;
+      landscapeGroup.add(createCypressTree(tx, tz, s));
+    });
+
+    // ==========================================
+    // 7. ANIMATION & LIGHTING MODES
+    // ==========================================
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      // เปลวไฟคบเพลิงพริ้วไหว
+      torchLights.forEach((t, idx) => {
+        const noise = Math.sin(elapsed * 9 + idx * 1.5) * 0.15 + Math.cos(elapsed * 17 + idx) * 0.1;
+        t.light.intensity = t.baseIntensity + noise;
+      });
+
+      // ผิวน้ำกระเพื่อมเบาๆ
+      moat.rotation.z = Math.sin(elapsed * 0.3) * 0.005;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    setTimeout(() => {
+      const loader = document.getElementById('loader');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.remove(), 600);
+      }
+    }, 400);
+
+    animate();
+
+    // ==========================================
+    // 8. INTERACTIVE FUNCTIONS & PRESETS
+    // ==========================================
+    function setLighting(mode) {
+      document.querySelectorAll('.controls-panel .btn').forEach(b => {
+        if (b.id.startsWith('btn-sun') || b.id.startsWith('btn-night') || b.id.startsWith('btn-sunset')) {
+          b.classList.remove('active');
+        }
+      });
+
+      if (mode === 'day') {
+        document.getElementById('btn-sun').classList.add('active');
+        scene.background.setHex(0xdbeafe);
+        scene.fog.color.setHex(0xdbeafe);
+        ambientLight.intensity = 0.45;
+        ambientLight.color.setHex(0xffffff);
+        hemiLight.intensity = 0.55;
+        hemiLight.color.setHex(0xe0f2fe);
+        hemiLight.groundColor.setHex(0x3f382a);
+        sunLight.intensity = 1.4;
+        sunLight.color.setHex(0xfffaed);
+        sunLight.position.set(60, 90, 50);
+        torchLights.forEach(t => t.baseIntensity = 0.8);
+      } else if (mode === 'sunset') {
+        document.getElementById('btn-sunset').classList.add('active');
+        scene.background.setHex(0x3b1d28);
+        scene.fog.color.setHex(0x3b1d28);
+        ambientLight.intensity = 0.35;
+        ambientLight.color.setHex(0xfb923c);
+        hemiLight.intensity = 0.4;
+        hemiLight.color.setHex(0xf472b6);
+        hemiLight.groundColor.setHex(0x1c1917);
+        sunLight.intensity = 1.8;
+        sunLight.color.setHex(0xf97316);
+        sunLight.position.set(90, 25, 40);
+        torchLights.forEach(t => t.baseIntensity = 1.8);
+      } else if (mode === 'night') {
+        document.getElementById('btn-night').classList.add('active');
+        scene.background.setHex(0x060913);
+        scene.fog.color.setHex(0x060913);
+        ambientLight.intensity = 0.12;
+        ambientLight.color.setHex(0x38bdf8);
+        hemiLight.intensity = 0.15;
+        hemiLight.color.setHex(0x1e293b);
+        hemiLight.groundColor.setHex(0x020617);
+        sunLight.intensity = 0.3;
+        sunLight.color.setHex(0x93c5fd);
+        sunLight.position.set(-40, 70, -40);
+        torchLights.forEach(t => t.baseIntensity = 3.2);
+      }
+    }
+
+    function toggleAutoRotate() {
+      const btn = document.getElementById('btn-rotate');
+      controls.autoRotate = !controls.autoRotate;
+      if (controls.autoRotate) {
+        btn.classList.add('active');
+        btn.innerHTML = '🔄 หมุนอัตโนมัติ (On)';
+      } else {
+        btn.classList.remove('active');
+        btn.innerHTML = '⏸️ หมุนอัตโนมัติ (Off)';
+      }
+    }
+
+    function setView(view) {
+      controls.autoRotate = false;
+      const btnRot = document.getElementById('btn-rotate');
+      if (btnRot) {
+        btnRot.classList.remove('active');
+        btnRot.innerHTML = '⏸️ หมุนอัตโนมัติ (Off)';
+      }
+
+      if (view === 'front') {
+        animateCamera({ x: 0, y: 22, z: 82 }, { x: 0, y: 12, z: 15 });
+      } else if (view === 'garden') {
+        animateCamera({ x: -45, y: 14, z: 65 }, { x: 0, y: 8, z: 45 });
+      } else if (view === 'spires') {
+        animateCamera({ x: 28, y: 46, z: 36 }, { x: 0, y: 25, z: 0 });
+      } else if (view === 'top') {
+        animateCamera({ x: 0, y: 110, z: 40 }, { x: 0, y: 5, z: 0 });
+      }
+    }
+
+    function animateCamera(targetPos, targetLookAt) {
+      const startPos = camera.position.clone();
+      const startTarget = controls.target.clone();
+      const duration = 1200;
+      const startTime = performance.now();
+
+      function updateCam(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+        camera.position.lerpVectors(startPos, new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z), ease);
+        controls.target.lerpVectors(startTarget, new THREE.Vector3(targetLookAt.x, targetLookAt.y, targetLookAt.z), ease);
+
+        if (progress < 1) {
+          requestAnimationFrame(updateCam);
+        }
+      }
+      requestAnimationFrame(updateCam);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

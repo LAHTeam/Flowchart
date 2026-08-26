@@ -1,1061 +1,936 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grand Royal Citadel 3D</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-    }
-    body, html {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background-color: #0d131a;
-      font-family: 'Segoe UI', 'Sarabun', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-    }
-    #webgl-container {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    /* UI Overlay */
-    .ui-overlay {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      color: #f8fafc;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-      z-index: 10;
-      pointer-events: none;
-    }
-    .castle-title {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      background: linear-gradient(135deg, #fef08a, #ca8a04, #e2e8f0);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 4px;
-    }
-    .castle-subtitle {
-      font-size: 13px;
-      color: #cbd5e1;
-      opacity: 0.9;
-    }
-    /* Controls Panel */
-    .controls-panel {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 10px;
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 10px 18px;
-      border-radius: 30px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      z-index: 10;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-    }
-    .btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #f1f5f9;
-      padding: 8px 16px;
-      font-size: 13px;
-      font-weight: 500;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn:hover {
-      background: rgba(217, 119, 6, 0.8);
-      border-color: #f59e0b;
-      color: #ffffff;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-    }
-    .btn.active {
-      background: linear-gradient(135deg, #d97706, #b45309);
-      border-color: #fcd34d;
-      color: #fff;
-      box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
-    }
-    /* Quick View Presets */
-    .view-presets {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 10;
-    }
-    .preset-btn {
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #e2e8f0;
-      padding: 7px 14px;
-      font-size: 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: right;
-    }
-    .preset-btn:hover {
-      background: rgba(30, 41, 59, 0.95);
-      border-color: #fbbf24;
-      color: #fbbf24;
-    }
-    /* Loading screen */
-    #loader {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #090d16;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-      color: #e2e8f0;
-      transition: opacity 0.6s ease;
-    }
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 3px solid rgba(255,255,255,0.1);
-      border-top-color: #f59e0b;
-      border-radius: 50%;
-      animation: spin 1s infinite linear;
-      margin-bottom: 16px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .hint {
-      position: absolute;
-      bottom: 75px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgba(255,255,255,0.6);
-      font-size: 12px;
-      pointer-events: none;
-      background: rgba(0,0,0,0.4);
-      padding: 4px 12px;
-      border-radius: 12px;
-    }
-    @media (max-width: 600px) {
-      .controls-panel {
-        bottom: 10px;
-        padding: 6px 10px;
-        gap: 6px;
-      }
-      .btn {
-        padding: 6px 10px;
-        font-size: 11px;
-      }
-      .castle-title {
-        font-size: 18px;
-      }
-      .view-presets {
-        top: auto;
-        bottom: 68px;
-        right: 10px;
-      }
-      .preset-btn {
-        padding: 5px 10px;
-        font-size: 11px;
-      }
-      .hint { display: none; }
-    }
-  </style>
-  <!-- Three.js and OrbitControls via CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คัมภีร์วิเคราะห์ดวงชะตาจีนขั้นสูง (ปาจื่อ & ฉีเหมินตุ้นเจี่ย) พ.ศ. 2569 - 2570</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Sarabun:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary-gold: #cfa856;
+  --secondary-gold: #e5c158;
+  --accent-red: #8b1e1e;
+  --bright-red: #c0392b;
+  --dark-bg: #0d1117;
+  --card-bg: #161b22;
+  --card-border: #30363d;
+  --text-main: #e6edf3;
+  --text-muted: #8b949e;
+  --fire-color: #ff5e57;
+  --earth-color: #e5a93c;
+  --metal-color: #d2dae2;
+  --water-color: #3498db;
+  --wood-color: #2ecc71;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Sarabun', sans-serif;
+  background-color: var(--dark-bg);
+  color: var(--text-main);
+  line-height: 1.7;
+  font-size: 15px;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(207, 168, 86, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(139, 30, 30, 0.08) 0%, transparent 50%);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px 80px 20px;
+}
+
+/* Header & Hero */
+.hero {
+  text-align: center;
+  padding: 50px 20px 40px;
+  background: linear-gradient(180deg, rgba(22, 27, 34, 0.9) 0%, rgba(13, 17, 23, 0.95) 100%);
+  border: 1px solid var(--card-border);
+  border-top: 4px solid var(--primary-gold);
+  border-radius: 12px;
+  margin-bottom: 35px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.hero::after {
+  content: "☯";
+  position: absolute;
+  top: 15px;
+  right: 25px;
+  font-size: 32px;
+  color: rgba(207, 168, 86, 0.2);
+}
+
+.hero h1 {
+  font-family: 'Cinzel', 'Sarabun', serif;
+  color: var(--secondary-gold);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.hero .subtitle {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 25px;
+}
+
+.native-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.badge-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(207, 168, 86, 0.2);
+  border-radius: 8px;
+  padding: 12px 15px;
+  text-align: center;
+}
+
+.badge-item .label {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.badge-item .val {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Sections */
+.section {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  color: var(--primary-gold);
+  border-bottom: 1px solid rgba(207, 168, 86, 0.25);
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+  font-weight: 700;
+}
+
+.section-title .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(207, 168, 86, 0.12);
+  border-radius: 6px;
+  color: var(--secondary-gold);
+}
+
+/* 4 Pillars Table */
+.bazi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+@media (max-width: 768px) {
+  .bazi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.pillar-box {
+  background: #0f141c;
+  border: 1px solid rgba(207, 168, 86, 0.3);
+  border-radius: 8px;
+  text-align: center;
+  padding: 15px 10px;
+  transition: transform 0.2s;
+}
+
+.pillar-box:hover {
+  transform: translateY(-3px);
+  border-color: var(--secondary-gold);
+}
+
+.pillar-box.day-pillar {
+  border: 2px solid var(--primary-gold);
+  background: linear-gradient(180deg, rgba(207,168,86,0.1) 0%, #0f141c 100%);
+}
+
+.pillar-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--secondary-gold);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.stem-cell, .branch-cell {
+  padding: 12px 6px;
+  margin: 6px 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.chinese-char {
+  font-size: 26px;
+  font-weight: 700;
+  display: block;
+}
+
+.char-desc {
+  font-size: 12px;
+  display: block;
+  margin-top: 2px;
+}
+
+.ten-god-tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(207, 168, 86, 0.15);
+  color: var(--secondary-gold);
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.hidden-stems {
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px dashed rgba(255,255,255,0.1);
+  padding-top: 8px;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* Colors for Elements */
+.elem-fire { color: var(--fire-color); }
+.elem-earth { color: var(--earth-color); }
+.elem-metal { color: var(--metal-color); }
+.elem-water { color: var(--water-color); }
+.elem-wood { color: var(--wood-color); }
+
+/* Analysis Card Grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.info-card {
+  background: #0f141c;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.info-card h4 {
+  color: var(--secondary-gold);
+  font-size: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Star tags */
+.star-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin: 3px 4px 3px 0;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.star-auspicious {
+  border-color: rgba(46, 204, 113, 0.4);
+  color: #2ecc71;
+  background: rgba(46, 204, 113, 0.08);
+}
+
+.star-warning {
+  border-color: rgba(231, 76, 60, 0.4);
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.08);
+}
+
+.star-neutral {
+  border-color: rgba(52, 152, 219, 0.4);
+  color: #3498db;
+  background: rgba(52, 152, 219, 0.08);
+}
+
+/* Timeline Month Cards */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  margin-top: 15px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 20px;
+  width: 2px;
+  background: rgba(207, 168, 86, 0.3);
+}
+
+@media (max-width: 600px) {
+  .timeline::before { left: 10px; }
+}
+
+.month-item {
+  position: relative;
+  padding-left: 50px;
+}
+
+@media (max-width: 600px) {
+  .month-item { padding-left: 30px; }
+}
+
+.month-dot {
+  position: absolute;
+  left: 12px;
+  top: 18px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--dark-bg);
+  border: 3px solid var(--primary-gold);
+}
+
+@media (max-width: 600px) {
+  .month-dot { left: 2px; }
+}
+
+.month-content {
+  background: #0f141c;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 3px solid var(--primary-gold);
+}
+
+.month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.month-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--secondary-gold);
+}
+
+.month-gz {
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(207, 168, 86, 0.15);
+  color: #fff;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.sub-box {
+  background: rgba(255,255,255,0.02);
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.sub-box h5 {
+  font-size: 13px;
+  color: var(--primary-gold);
+  margin-bottom: 4px;
+}
+
+/* Strategic Actions */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.action-card {
+  background: #0f141c;
+  border-radius: 8px;
+  padding: 22px;
+  border-top: 3px solid var(--primary-gold);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-card.career { border-top-color: #3498db; }
+.action-card.wealth { border-top-color: #2ecc71; }
+.action-card.health { border-top-color: #e74c3c; }
+.action-card.fengshui { border-top-color: #e5c158; }
+
+.action-card h4 {
+  font-size: 17px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.action-card li {
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #c9d1d9;
+}
+
+.action-card li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--primary-gold);
+}
+
+/* Tables */
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 14px;
+}
+
+.custom-table th, .custom-table td {
+  padding: 10px 14px;
+  border: 1px solid var(--card-border);
+  text-align: left;
+}
+
+.custom-table th {
+  background: rgba(207, 168, 86, 0.12);
+  color: var(--secondary-gold);
+  font-weight: 600;
+}
+
+.custom-table tr:nth-child(even) {
+  background: rgba(255,255,255,0.02);
+}
+
+.highlight-box {
+  background: linear-gradient(135deg, rgba(207,168,86,0.1) 0%, rgba(139,30,30,0.15) 100%);
+  border: 1px solid var(--primary-gold);
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin: 20px 0;
+}
+
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding-top: 30px;
+  border-top: 1px solid var(--card-border);
+}
+</style>
 </head>
 <body>
-  <div id="loader">
-    <div class="spinner"></div>
-    <div style="font-weight:600; font-size:16px; color:#fcd34d;">กำลังเนรมิตสถาปัตยกรรมปราสาทหิน...</div>
-    <div style="font-size:12px; color:#94a3b8; margin-top:6px;">Generating Procedural Textures & Landscape</div>
-  </div>
 
-  <div class="ui-overlay">
-    <div class="castle-title">🏰 พระราชวังแกรนด์ชาโตว์ (Grand Royal Citadel)</div>
-    <div class="castle-subtitle">สถาปัตยกรรมหินโบราณ • ยอดปราสาทสีรอยัลแซฟไฟร์ • สวนพฤกษศาสตร์หลวง</div>
-  </div>
-
-  <div class="view-presets">
-    <button class="preset-btn" onclick="setView('front')">มุมมองหลัก (Grand Entrance)</button>
-    <button class="preset-btn" onclick="setView('garden')">มุมสวนหลวง (Royal Garden)</button>
-    <button class="preset-btn" onclick="setView('spires')">ยอดปราสาท (High Towers)</button>
-    <button class="preset-btn" onclick="setView('top')">มุมสูง (Bird's Eye)</button>
-  </div>
-
-  <div class="hint">🖱️ ลากเมาส์เพื่อหมุนมุมมอง • เลื่อนลูกกลิ้งเพื่อซูม • คลิกขวาเพื่อแพนมุมมอง</div>
-
-  <div class="controls-panel">
-    <button class="btn active" id="btn-sun" onclick="setLighting('day')">☀️ กลางวัน (Daylight)</button>
-    <button class="btn" id="btn-sunset" onclick="setLighting('sunset')">🌅 อัสดง (Sunset)</button>
-    <button class="btn" id="btn-night" onclick="setLighting('night')">🌙 ราตรี (Night)</button>
-    <button class="btn" id="btn-rotate" onclick="toggleAutoRotate()">🔄 หมุนอัตโนมัติ (On)</button>
-  </div>
-
-  <div id="webgl-container"></div>
-
-  <script>
-    // ==========================================
-    // 1. PROCEDURAL TEXTURE GENERATOR ENGINE
-    // ==========================================
-    const TextureGenerator = {
-      // 1.1 ลายหินปราสาทโบราณ มีมิติ รอยตะไคร่ และร่องปูนยาแนว
-      createStoneWallTexture: function() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1024;
-        canvas.height = 1024;
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#7a7672';
-        ctx.fillRect(0, 0, 1024, 1024);
-
-        const rows = 16;
-        const rowHeight = 1024 / rows;
-
-        for (let r = 0; r < rows; r++) {
-          const y = r * rowHeight;
-          const cols = 8;
-          const colWidth = 1024 / cols;
-          const offset = (r % 2 === 0) ? 0 : colWidth / 2;
-
-          for (let c = -1; c <= cols + 1; c++) {
-            const x = c * colWidth + offset;
-            const shade = 105 + Math.floor((Math.random() - 0.5) * 45);
-            const warm = Math.floor((Math.random() - 0.5) * 12);
-            ctx.fillStyle = `rgb(${shade + warm + 15}, ${shade + 10}, ${shade - 5})`;
-            ctx.fillRect(x + 3, y + 3, colWidth - 6, rowHeight - 6);
-
-            for (let i = 0; i < 90; i++) {
-              const nx = x + 3 + Math.random() * (colWidth - 6);
-              const ny = y + 3 + Math.random() * (rowHeight - 6);
-              const nsize = 1 + Math.random() * 4;
-              const nAlpha = 0.15 + Math.random() * 0.25;
-              const isDark = Math.random() > 0.45;
-              ctx.fillStyle = isDark ? `rgba(40,35,30,${nAlpha})` : `rgba(220,215,200,${nAlpha})`;
-              ctx.fillRect(nx, ny, nsize, nsize);
-            }
-
-            if (Math.random() > 0.4) {
-              ctx.fillStyle = 'rgba(45, 60, 35, 0.25)';
-              ctx.fillRect(x + 3, y + rowHeight - 8, colWidth - 6, 5);
-            }
-          }
-        }
-
-        ctx.strokeStyle = '#2b2622';
-        ctx.lineWidth = 6;
-        for (let r = 0; r <= rows; r++) {
-          ctx.beginPath();
-          ctx.moveTo(0, r * rowHeight);
-          ctx.lineTo(1024, r * rowHeight);
-          ctx.stroke();
-        }
-        for (let r = 0; r < rows; r++) {
-          const y = r * rowHeight;
-          const cols = 8;
-          const colWidth = 1024 / cols;
-          const offset = (r % 2 === 0) ? 0 : colWidth / 2;
-          for (let c = -1; c <= cols + 1; c++) {
-            const x = c * colWidth + offset;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x, y + rowHeight);
-            ctx.stroke();
-          }
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-      },
-
-      // 1.2 แผ่นกระเบื้องหลังคาสีรอยัลแซฟไฟร์โอ่อ่า
-      createRoofTileTexture: function() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(0, 0, 512, 512);
-
-        const rows = 24;
-        const rowH = 512 / rows;
-        for (let r = 0; r < rows; r++) {
-          const y = r * rowH;
-          const cols = 12;
-          const colW = 512 / cols;
-          const offset = (r % 2 === 0) ? 0 : colW / 2;
-
-          for (let c = -1; c <= cols + 1; c++) {
-            const x = c * colW + offset;
-            const grad = ctx.createLinearGradient(x, y, x, y + rowH);
-            const varHue = Math.floor((Math.random() - 0.5) * 15);
-            grad.addColorStop(0, `rgb(${25 + varHue}, ${45 + varHue}, ${85 + varHue})`);
-            grad.addColorStop(0.7, `rgb(${18 + varHue}, ${32 + varHue}, ${65 + varHue})`);
-            grad.addColorStop(1, '#0f172a');
-            
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.moveTo(x + 1, y);
-            ctx.lineTo(x + colW - 1, y);
-            ctx.lineTo(x + colW - 1, y + rowH - 2);
-            ctx.quadraticCurveTo(x + colW / 2, y + rowH + 3, x + 1, y + rowH - 2);
-            ctx.closePath();
-            ctx.fill();
-
-            if (r % 6 === 0) {
-              ctx.strokeStyle = 'rgba(217, 160, 40, 0.4)';
-              ctx.lineWidth = 1.5;
-              ctx.stroke();
-            }
-          }
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-      },
-
-      // 1.3 ลายสนามหญ้าเขียวขจี
-      createGrassTexture: function() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#2d5a27';
-        ctx.fillRect(0, 0, 512, 512);
-
-        for (let i = 0; i < 20000; i++) {
-          const x = Math.random() * 512;
-          const y = Math.random() * 512;
-          const g = 80 + Math.floor(Math.random() * 80);
-          const r = 25 + Math.floor(Math.random() * 35);
-          const b = 20 + Math.floor(Math.random() * 30);
-          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.8)`;
-          ctx.fillRect(x, y, 2, 3);
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-      },
-
-      // 1.4 แผ่นหินปูทางเดินสวน
-      createCobblestoneTexture: function() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#3a342f';
-        ctx.fillRect(0, 0, 512, 512);
-
-        for (let i = 0; i < 300; i++) {
-          const cx = Math.random() * 512;
-          const cy = Math.random() * 512;
-          const rx = 8 + Math.random() * 14;
-          const ry = 8 + Math.random() * 14;
-          const shade = 120 + Math.floor((Math.random() - 0.5) * 40);
-          ctx.fillStyle = `rgb(${shade + 10}, ${shade + 5}, ${shade - 5})`;
-          ctx.beginPath();
-          ctx.ellipse(cx, cy, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = '#221e1a';
-          ctx.lineWidth = 2.5;
-          ctx.stroke();
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-      },
-
-      // 1.5 Bump Map สร้างมิติความนูนต่ำ
-      createBumpTexture: function() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#808080';
-        ctx.fillRect(0, 0, 512, 512);
-
-        for (let i = 0; i < 15000; i++) {
-          const x = Math.random() * 512;
-          const y = Math.random() * 512;
-          const v = Math.random() > 0.5 ? 255 : 0;
-          ctx.fillStyle = `rgba(${v}, ${v}, ${v}, ${0.1 + Math.random() * 0.25})`;
-          ctx.fillRect(x, y, 2 + Math.random() * 3, 2 + Math.random() * 3);
-        }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        return texture;
-      }
-    };
-
-    // ==========================================
-    // 2. THREE.JS SCENE SETUP
-    // ==========================================
-    const container = document.getElementById('webgl-container');
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xdbeafe);
-    scene.fog = new THREE.FogExp2(0xdbeafe, 0.0075);
-
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.5, 600);
-    camera.position.set(0, 32, 75);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-    container.appendChild(renderer.domElement);
-
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.maxPolarAngle = Math.PI / 2 - 0.02;
-    controls.minDistance = 15;
-    controls.maxDistance = 180;
-    controls.target.set(0, 14, 0);
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.7;
-
-    // ==========================================
-    // 3. LIGHTING SYSTEM
-    // ==========================================
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
-    scene.add(ambientLight);
-
-    const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x3f382a, 0.55);
-    scene.add(hemiLight);
-
-    const sunLight = new THREE.DirectionalLight(0xfffaed, 1.4);
-    sunLight.position.set(60, 90, 50);
-    sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.camera.near = 10;
-    sunLight.shadow.camera.far = 250;
-    const d = 55;
-    sunLight.shadow.camera.left = -d;
-    sunLight.shadow.camera.right = d;
-    sunLight.shadow.camera.top = d;
-    sunLight.shadow.camera.bottom = -d;
-    sunLight.shadow.bias = -0.0003;
-    scene.add(sunLight);
-
-    const torchLights = [];
-    function addTorchLight(x, y, z) {
-      const pLight = new THREE.PointLight(0xff9922, 1.2, 16, 1.5);
-      pLight.position.set(x, y, z);
-      scene.add(pLight);
-      torchLights.push({ light: pLight, baseIntensity: 1.2, x, y, z });
-
-      const sconceGeo = new THREE.CylinderGeometry(0.1, 0.2, 0.5, 6);
-      const sconceMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.3 });
-      const sconce = new THREE.Mesh(sconceGeo, sconceMat);
-      sconce.position.set(x, y - 0.2, z);
-      scene.add(sconce);
-
-      const flameGeo = new THREE.SphereGeometry(0.2, 8, 8);
-      const flameMat = new THREE.MeshBasicMaterial({ color: 0xffaa33 });
-      const flame = new THREE.Mesh(flameGeo, flameMat);
-      flame.position.set(x, y + 0.1, z);
-      scene.add(flame);
-    }
-
-    // ==========================================
-    // 4. SHARED MATERIALS
-    // ==========================================
-    const bumpTex = TextureGenerator.createBumpTexture();
-    bumpTex.repeat.set(4, 4);
-
-    const stoneTex = TextureGenerator.createStoneWallTexture();
-    stoneTex.repeat.set(4, 4);
-    const stoneMaterial = new THREE.MeshStandardMaterial({
-      map: stoneTex,
-      bumpMap: bumpTex,
-      bumpScale: 0.08,
-      roughness: 0.82,
-      metalness: 0.05
-    });
-
-    const darkStoneTex = TextureGenerator.createStoneWallTexture();
-    darkStoneTex.repeat.set(2, 2);
-    const trimStoneMaterial = new THREE.MeshStandardMaterial({
-      map: darkStoneTex,
-      bumpMap: bumpTex,
-      bumpScale: 0.05,
-      roughness: 0.75,
-      color: 0xc8c3bc
-    });
-
-    const roofTex = TextureGenerator.createRoofTileTexture();
-    roofTex.repeat.set(3, 3);
-    const grandRoofMaterial = new THREE.MeshStandardMaterial({
-      map: roofTex,
-      bumpMap: bumpTex,
-      bumpScale: 0.05,
-      roughness: 0.35,
-      metalness: 0.25,
-      color: 0x2a4365
-    });
-
-    const goldMaterial = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b,
-      metalness: 0.9,
-      roughness: 0.2
-    });
-
-    const woodMaterial = new THREE.MeshStandardMaterial({
-      color: 0x452311,
-      roughness: 0.8,
-      bumpMap: bumpTex,
-      bumpScale: 0.03
-    });
-
-    const waterMaterial = new THREE.MeshStandardMaterial({
-      color: 0x0284c7,
-      roughness: 0.1,
-      metalness: 0.8,
-      transparent: true,
-      opacity: 0.85
-    });
-
-    // ==========================================
-    // 5. CASTLE ARCHITECTURE
-    // ==========================================
-    const castleGroup = new THREE.Group();
-    scene.add(castleGroup);
-
-    // ฐานหิน
-    const baseGeo = new THREE.BoxGeometry(46, 3.5, 46);
-    const baseMesh = new THREE.Mesh(baseGeo, stoneMaterial);
-    baseMesh.position.y = 1.75;
-    baseMesh.receiveShadow = true;
-    baseMesh.castShadow = true;
-    castleGroup.add(baseMesh);
-
-    // บันไดหิน
-    for (let s = 0; s < 5; s++) {
-      const step = new THREE.Mesh(
-        new THREE.BoxGeometry(16 - s * 0.8, 0.7, 10 - s * 1.4),
-        trimStoneMaterial
-      );
-      step.position.set(0, 0.35 + s * 0.7, 24 + s * 0.7);
-      step.receiveShadow = true;
-      step.castShadow = true;
-      castleGroup.add(step);
-    }
-
-    // หอกลางปราสาท
-    const keepGeo = new THREE.BoxGeometry(18, 22, 18);
-    const keepMesh = new THREE.Mesh(keepGeo, stoneMaterial);
-    keepMesh.position.y = 14;
-    keepMesh.castShadow = true;
-    keepMesh.receiveShadow = true;
-    castleGroup.add(keepMesh);
-
-    const keepRoofGeo = new THREE.ConeGeometry(13.5, 14, 4);
-    const keepRoof = new THREE.Mesh(keepRoofGeo, grandRoofMaterial);
-    keepRoof.rotation.y = Math.PI / 4;
-    keepRoof.position.y = 25 + 7;
-    keepRoof.castShadow = true;
-    castleGroup.add(keepRoof);
-
-    const keepFinial = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.4, 5, 8), goldMaterial);
-    keepFinial.position.y = 25 + 14 + 2.5;
-    keepFinial.castShadow = true;
-    castleGroup.add(keepFinial);
-
-    const keepOrb = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 12), goldMaterial);
-    keepOrb.position.y = 25 + 14 + 1;
-    castleGroup.add(keepOrb);
-
-    // หอคอย 4 มุม
-    function createRoundTower(x, z, radius, height, roofHeight) {
-      const tower = new THREE.Group();
-
-      const towerGeo = new THREE.CylinderGeometry(radius, radius * 1.08, height, 20);
-      const towerMesh = new THREE.Mesh(towerGeo, stoneMaterial);
-      towerMesh.position.y = height / 2;
-      towerMesh.castShadow = true;
-      towerMesh.receiveShadow = true;
-      tower.add(towerMesh);
-
-      const corbelGeo = new THREE.CylinderGeometry(radius * 1.2, radius * 0.95, 1.6, 20);
-      const corbelMesh = new THREE.Mesh(corbelGeo, trimStoneMaterial);
-      corbelMesh.position.y = height;
-      corbelMesh.castShadow = true;
-      corbelMesh.receiveShadow = true;
-      tower.add(corbelMesh);
-
-      const merlonCount = 10;
-      for (let i = 0; i < merlonCount; i++) {
-        const angle = (i / merlonCount) * Math.PI * 2;
-        const mx = Math.cos(angle) * (radius * 1.15);
-        const mz = Math.sin(angle) * (radius * 1.15);
-        const merlon = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.3, 0.7), stoneMaterial);
-        merlon.position.set(mx, height + 1.2, mz);
-        merlon.rotation.y = -angle;
-        merlon.castShadow = true;
-        tower.add(merlon);
-      }
-
-      const spireGeo = new THREE.ConeGeometry(radius * 1.25, roofHeight, 20);
-      const spire = new THREE.Mesh(spireGeo, grandRoofMaterial);
-      spire.position.y = height + roofHeight / 2 + 0.8;
-      spire.castShadow = true;
-      tower.add(spire);
-
-      const spireFinial = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.2, 3.5, 8), goldMaterial);
-      spireFinial.position.y = height + roofHeight + 1.75;
-      tower.add(spireFinial);
-
-      const spireSphere = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), goldMaterial);
-      spireSphere.position.y = height + roofHeight + 0.6;
-      tower.add(spireSphere);
-
-      for (let h = 8; h <= height - 6; h += 7) {
-        const winGeo = new THREE.BoxGeometry(0.8, 2.2, 0.4);
-        const winMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.8 });
-        const win = new THREE.Mesh(winGeo, winMat);
-        win.position.set(0, h, radius + 0.05);
-        tower.add(win);
-      }
-
-      tower.position.set(x, 3.5, z);
-      return tower;
-    }
-
-    [
-      { x: -16, z: -16 },
-      { x: 16, z: -16 },
-      { x: -16, z: 16 },
-      { x: 16, z: 16 }
-    ].forEach(pos => {
-      castleGroup.add(createRoundTower(pos.x, pos.z, 4.5, 26, 15));
-    });
-
-    // ป้อมซุ้มประตูหน้า
-    castleGroup.add(createRoundTower(-6, 20, 3.2, 18, 11));
-    castleGroup.add(createRoundTower(6, 20, 3.2, 18, 11));
-
-    const gateArch = new THREE.Mesh(new THREE.BoxGeometry(6.5, 12, 4), stoneMaterial);
-    gateArch.position.set(0, 9.5, 20);
-    gateArch.castShadow = true;
-    gateArch.receiveShadow = true;
-    castleGroup.add(gateArch);
-
-    const gateDoor = new THREE.Mesh(new THREE.BoxGeometry(4.2, 7, 0.8), woodMaterial);
-    gateDoor.position.set(0, 7, 20.3);
-    gateDoor.castShadow = true;
-    castleGroup.add(gateDoor);
-
-    addTorchLight(-3.6, 8, 22.5);
-    addTorchLight(3.6, 8, 22.5);
-
-    // กำแพงล้อมรอบ
-    function createCurtainWall(x, y, z, width, height, depth, rotY = 0) {
-      const wallGroup = new THREE.Group();
-      const wall = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), stoneMaterial);
-      wall.position.y = height / 2;
-      wall.castShadow = true;
-      wall.receiveShadow = true;
-      wallGroup.add(wall);
-
-      const walkway = new THREE.Mesh(new THREE.BoxGeometry(width, 0.8, depth + 0.8), trimStoneMaterial);
-      walkway.position.y = height;
-      wallGroup.add(walkway);
-
-      const mCount = Math.floor(width / 2.2);
-      const stepW = width / mCount;
-      for (let i = 0; i < mCount; i++) {
-        const mx = -width / 2 + stepW * (i + 0.5);
-        const m = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 0.5), stoneMaterial);
-        m.position.set(mx, height + 0.55, depth / 2);
-        m.castShadow = true;
-        wallGroup.add(m);
-      }
-
-      wallGroup.position.set(x, y, z);
-      wallGroup.rotation.y = rotY;
-      return wallGroup;
-    }
-
-    castleGroup.add(createCurtainWall(0, 3.5, -16, 28, 15, 3.5));
-    castleGroup.add(createCurtainWall(-16, 3.5, 0, 28, 15, 3.5, Math.PI / 2));
-    castleGroup.add(createCurtainWall(16, 3.5, 0, 28, 15, 3.5, Math.PI / 2));
-    castleGroup.add(createCurtainWall(-11, 3.5, 17, 7, 15, 3.5));
-    castleGroup.add(createCurtainWall(11, 3.5, 17, 7, 15, 3.5));
-
-    addTorchLight(-16, 12, 14);
-    addTorchLight(16, 12, 14);
-    addTorchLight(-16, 12, -14);
-    addTorchLight(16, 12, -14);
-
-    // ==========================================
-    // 6. LANDSCAPING & ROYAL GARDEN
-    // ==========================================
-    const landscapeGroup = new THREE.Group();
-    scene.add(landscapeGroup);
-
-    // สนามหญ้า
-    const grassTex = TextureGenerator.createGrassTexture();
-    grassTex.repeat.set(30, 30);
-    const grassMat = new THREE.MeshStandardMaterial({
-      map: grassTex,
-      roughness: 0.88,
-      metalness: 0.05
-    });
-
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(280, 280, 1, 1), grassMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.05;
-    ground.receiveShadow = true;
-    landscapeGroup.add(ground);
-
-    // คูน้ำสะท้อนเงา
-    const moat = new THREE.Mesh(new THREE.RingGeometry(25.5, 36, 40), waterMaterial);
-    moat.rotation.x = -Math.PI / 2;
-    moat.position.y = 0.08;
-    moat.receiveShadow = true;
-    landscapeGroup.add(moat);
-
-    const innerRim = new THREE.Mesh(new THREE.RingGeometry(25.0, 25.6, 40), trimStoneMaterial);
-    innerRim.rotation.x = -Math.PI / 2;
-    innerRim.position.y = 0.12;
-    landscapeGroup.add(innerRim);
-
-    const outerRim = new THREE.Mesh(new THREE.RingGeometry(35.9, 36.6, 40), trimStoneMaterial);
-    outerRim.rotation.x = -Math.PI / 2;
-    outerRim.position.y = 0.12;
-    landscapeGroup.add(outerRim);
-
-    // สะพานหินและถนนทางเดิน
-    const cobbleTex = TextureGenerator.createCobblestoneTexture();
-    cobbleTex.repeat.set(2, 6);
-    const bridgeMat = new THREE.MeshStandardMaterial({
-      map: cobbleTex,
-      bumpMap: bumpTex,
-      bumpScale: 0.06,
-      roughness: 0.8
-    });
-
-    const bridge = new THREE.Mesh(new THREE.BoxGeometry(9, 1.2, 16), bridgeMat);
-    bridge.position.set(0, 0.6, 31);
-    bridge.receiveShadow = true;
-    bridge.castShadow = true;
-    landscapeGroup.add(bridge);
-
-    const railL = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 16), trimStoneMaterial);
-    railL.position.set(-4.2, 1.6, 31);
-    railL.castShadow = true;
-    landscapeGroup.add(railL);
-
-    const railR = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 16), trimStoneMaterial);
-    railR.position.set(4.2, 1.6, 31);
-    railR.castShadow = true;
-    landscapeGroup.add(railR);
-
-    cobbleTex.repeat.set(2, 15);
-    const promenade = new THREE.Mesh(new THREE.PlaneGeometry(10, 70), bridgeMat);
-    promenade.rotation.x = -Math.PI / 2;
-    promenade.position.set(0, 0.02, 70);
-    promenade.receiveShadow = true;
-    landscapeGroup.add(promenade);
-
-    // สวนพุ่มไม้สไตล์ฝรั่งเศส (Parterres)
-    const hedgeMat = new THREE.MeshStandardMaterial({
-      color: 0x1e5e22,
-      roughness: 0.9,
-      bumpMap: bumpTex,
-      bumpScale: 0.04
-    });
-
-    function createGardenParterre(centerX, centerZ) {
-      const parterre = new THREE.Group();
-      const size = 18;
-      const hH = 1.1;
-      const hW = 1.0;
-
-      const hN = new THREE.Mesh(new THREE.BoxGeometry(size, hH, hW), hedgeMat);
-      hN.position.set(0, hH / 2, -size / 2);
-      hN.castShadow = true;
-      parterre.add(hN);
-
-      const hS = new THREE.Mesh(new THREE.BoxGeometry(size, hH, hW), hedgeMat);
-      hS.position.set(0, hH / 2, size / 2);
-      hS.castShadow = true;
-      parterre.add(hS);
-
-      const hW_ = new THREE.Mesh(new THREE.BoxGeometry(hW, hH, size), hedgeMat);
-      hW_.position.set(-size / 2, hH / 2, 0);
-      hW_.castShadow = true;
-      parterre.add(hW_);
-
-      const hE_ = new THREE.Mesh(new THREE.BoxGeometry(hW, hH, size), hedgeMat);
-      hE_.position.set(size / 2, hH / 2, 0);
-      hE_.castShadow = true;
-      parterre.add(hE_);
-
-      const bed1 = new THREE.Mesh(new THREE.BoxGeometry(6, 0.4, 6), new THREE.MeshStandardMaterial({ color: 0xdb2777, roughness: 0.7 }));
-      bed1.position.set(-3.5, 0.2, -3.5);
-      bed1.receiveShadow = true;
-      parterre.add(bed1);
-
-      const bed2 = new THREE.Mesh(new THREE.BoxGeometry(6, 0.4, 6), new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.7 }));
-      bed2.position.set(3.5, 0.2, 3.5);
-      bed2.receiveShadow = true;
-      parterre.add(bed2);
-
-      const urnBase = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 1.5, 12), trimStoneMaterial);
-      urnBase.position.set(0, 0.75, 0);
-      urnBase.castShadow = true;
-      parterre.add(urnBase);
-
-      const urnTop = new THREE.Mesh(new THREE.ConeGeometry(1.4, 1.8, 12), hedgeMat);
-      urnTop.position.set(0, 2.2, 0);
-      urnTop.castShadow = true;
-      parterre.add(urnTop);
-
-      parterre.position.set(centerX, 0, centerZ);
-      return parterre;
-    }
-
-    landscapeGroup.add(createGardenParterre(-24, 55));
-    landscapeGroup.add(createGardenParterre(24, 55));
-    landscapeGroup.add(createGardenParterre(-48, 55));
-    landscapeGroup.add(createGardenParterre(48, 55));
-
-    // ต้นสนไซเปรสทรงสูง
-    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2714, roughness: 0.9 });
-    const foliageMat = new THREE.MeshStandardMaterial({
-      color: 0x1b4324,
-      roughness: 0.85,
-      bumpMap: bumpTex,
-      bumpScale: 0.05
-    });
-
-    function createCypressTree(x, z, scale = 1.0) {
-      const tree = new THREE.Group();
+<div class="container">
+
+  <!-- Hero Header -->
+  <header class="hero">
+    <h1>คัมภีร์วิเคราะห์ดวงชะตาจีนขั้นสูง</h1>
+    <div class="subtitle">ระบบปาจื่อ (BaZi 4 Pillars) • ฉีเหมินตุ้นเจี่ย (Qi Men Dun Jia) • โป๊ยข่วย 8 ทิศ & ซวนคงต้ากว้า 64 กว้า</div>
+    
+    <div class="native-badge-grid">
+      <div class="badge-item">
+        <span class="label">เพศ / วันเดือนปีเกิด</span>
+        <span class="val">หญิง / 26 ก.ย. 2519 (1976)</span>
+      </div>
+      <div class="badge-item">
+        <span class="label">เวลาเกิด / ปรับเวลาสุริยคติจริง</span>
+        <span class="val">01.44 น. (เวลาแท้ 01.36 น. ยามฉิ่ว 丑)</span>
+      </div>
+      <div class="badge-item">
+        <span class="label">สถานที่เกิด</span>
+        <span class="val">อ.โกสุมพิสัย จ.มหาสารคาม</span>
+      </div>
+      <div class="badge-item">
+        <span class="label">ดิถีประจำตัว (Day Master)</span>
+        <span class="val elem-metal">辛 ซินทองหยิน (เพชร/อัญมณี)</span>
+      </div>
+      <div class="badge-item">
+        <span class="label">รหัสกว้าประจำตัว (Ming Gua)</span>
+        <span class="val elem-fire">กว้า 9 หลี่ (ธาตุไฟ - ตะวันออก)</span>
+      </div>
+      <div class="badge-item">
+        <span class="label">ช่วงวัยจรใหญ่ (大运 Da Yun)</span>
+        <span class="val elem-water">壬辰 (ยิ้มซิ้ง / น้ำมังกร อายุ 46-55)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section 1: Natal BaZi Chart -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">📜</span> 1. แผนภูมิดวงชะตากำเนิด 4 เสา (BaZi Natal Chart & 10 Profiles)</h2>
+    
+    <div class="bazi-grid">
+      <!-- Hour Pillar -->
+      <div class="pillar-box">
+        <div class="pillar-header">เสายาม (Hour)</div>
+        <div class="stem-cell">
+          <span class="ten-god-tag">เพียเอี้ยง (เอี่ยว)</span>
+          <span class="chinese-char elem-earth">己</span>
+          <span class="char-desc">จี่ (ดินหยิน)</span>
+        </div>
+        <div class="branch-cell">
+          <span class="chinese-char elem-earth">丑</span>
+          <span class="char-desc">ฉิ่ว (วัว / ดินเปียก)</span>
+        </div>
+        <div class="hidden-stems">
+          <strong>ราศีแฝง:</strong><br>
+          己 ดินหยิน (เพียเอี้ยง)<br>
+          癸 น้ำหยิน (เจียะซิ้ง)<br>
+          辛 ทองหยิน (ปีเกียง)
+        </div>
+      </div>
+
+      <!-- Day Pillar -->
+      <div class="pillar-box day-pillar">
+        <div class="pillar-header">เสาวัน (Day - ตัวตน)</div>
+        <div class="stem-cell">
+          <span class="ten-god-tag">ดิถีตัวตน (Day Master)</span>
+          <span class="chinese-char elem-metal">辛</span>
+          <span class="char-desc">ซิน (ทองหยิน / อัญมณี)</span>
+        </div>
+        <div class="branch-cell">
+          <span class="chinese-char elem-fire">巳</span>
+          <span class="char-desc">ซียะ (งู / ไฟหยาง)</span>
+        </div>
+        <div class="hidden-stems">
+          <strong>ราศีแฝง (วังคู่ครอง):</strong><br>
+          丙 ไฟหยาง (เจิ้งกัว)<br>
+          戊 ดินหยาง (เจิ้งอิ้น)<br>
+          庚 ทองหยาง (เกียบใช้)
+        </div>
+      </div>
+
+      <!-- Month Pillar -->
+      <div class="pillar-box">
+        <div class="pillar-header">เสาเดือน (Month - อาชีพ)</div>
+        <div class="stem-cell">
+          <span class="ten-god-tag">ชีซั่วะ (7 อสูร)</span>
+          <span class="chinese-char elem-fire">丁</span>
+          <span class="char-desc">เต็ง (ไฟหยิน)</span>
+        </div>
+        <div class="branch-cell">
+          <span class="chinese-char elem-metal">酉</span>
+          <span class="char-desc">อิ้ว (ไก่ / ทองบริสุทธิ์)</span>
+        </div>
+        <div class="hidden-stems">
+          <strong>ราศีแฝง (ลิ่วซิ้ง):</strong><br>
+          辛 ทองหยิน (ปีเกียง)<br>
+          <span style="color:var(--primary-gold);">★ ลกซิ้ง (ดาวลาภยศกำเนิด)</span>
+        </div>
+      </div>
+
+      <!-- Year Pillar -->
+      <div class="pillar-box">
+        <div class="pillar-header">เสาปี (Year - สังคม/บรรพชน)</div>
+        <div class="stem-cell">
+          <span class="ten-god-tag">เจิ้งกัว (ขุนนางตรง)</span>
+          <span class="chinese-char elem-fire">丙</span>
+          <span class="char-desc">เปี้ย (ไฟหยาง)</span>
+        </div>
+        <div class="branch-cell">
+          <span class="chinese-char elem-earth">辰</span>
+          <span class="char-desc">ซิ้ง (มังกร / ดินเปียก)</span>
+        </div>
+        <div class="hidden-stems">
+          <strong>ราศีแฝง:</strong><br>
+          戊 ดินหยาง (เจิ้งอิ้น)<br>
+          乙 ไม้หยิน (เพียใช้)<br>
+          癸 น้ำหยิน (เจียะซิ้ง)
+        </div>
+      </div>
+    </div>
+
+    <!-- Special Structural Combinations -->
+    <div class="highlight-box">
+      <h3 style="color: var(--secondary-gold); font-size: 16px; margin-bottom: 8px;">👑 โครงสร้างดวงชะตาพิเศษระดับสูง (Special Formations)</h3>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li><strong>ไตรภาคีธาตุทองสมบูรณ์แบบ (巳 - 酉 - 丑 三合金局 Si-You-Chou Metal Frame):</strong> ในดวงมีราศีล่าง 巳 (วัน) + 酉 (เดือน) + 丑 (ยาม) ครบ 3 ตัว ก่อตัวเป็นมหาพลังธาตุทองบริสุทธิ์ ส่งผลให้ดิถี 辛 (ทอง) แข็งแกร่งทรงพลังอย่างยิ่ง (身旺 / 建禄格 โครงสร้างเจี้ยนลู่ขุนนางทรงพลัง) มีความเด็ดเดี่ยว สง่างาม เจ้าระเบียบ จิตใจหนักแน่น มีความเป็นผู้นำสูงส่ง</li>
+        <li><strong>คู่ภาคีฟ้า 丙-辛 รวมธาตุน้ำ (丙辛合水 Bing-Xin He):</strong> ราศีบนปี 丙 (เจิ้งกัว - ขุนนาง/เกียรติยศ) ผูกพันภาคีเข้าสู่ดิถีตัวตน 辛 โดยตรง หมายถึงผู้ใหญ่ บุคคลระดับสูง หรือคู่ครองให้การยกย่อง สนับสนุน มักมีชื่อเสียงและสถานะทางสังคมที่โดดเด่น</li>
+        <li><strong>เต็งไฟนั่งทองบริสุทธิ์ (丁坐酉 杀坐贵):</strong> เสาเดือนมี 丁 (ดาวชีซั่วะ / การบริหารกลยุทธ์ การตัดสินใจเฉียบขาด) นั่งอยู่บน 酉 (ไก่ทอง / เทพอุปถัมภ์และดาวลก) เป็นคนกล้าได้กล้าเสีย มีเซ้นส์ทางธุรกิจและการบริหารคนยอดเยี่ยม</li>
+        <li><strong>ปฏิสนธิกาล (Tai Yuan 胎元):</strong> 戊子 (โบ่วจื้อ - ดินบนน้ำหนู) คลังปัญญาและพลังหยินหยางค้ำจุนชีวิต</li>
+      </ul>
+    </div>
+
+    <!-- 10 Profiles Proportions & Element Balance -->
+    <div class="cards-grid">
+      <div class="info-card">
+        <h4>⚖️ สัดส่วนโครงสร้าง 10 เทพ (10 Profiles Proportions)</h4>
+        <table class="custom-table">
+          <tr><th>เทพประจำตัว / โครงสร้าง</th><th>สัดส่วน (%)</th><th>บทบาทในดวงชะตา</th></tr>
+          <tr><td><strong>Friend / Companion (比肩 ปีเกียง)</strong></td><td>45%</td><td>ความมั่นใจสูง พึ่งพาตนเอง มีเครือข่ายมิตรสหาย</td></tr>
+          <tr><td><strong>Direct Officer (正官 เจิ้งกัว)</strong></td><td>18%</td><td>เกียรติยศ ระเบียบวินัย ความถูกต้องทางกฎหมาย</td></tr>
+          <tr><td><strong>Resource (印星 เอี่ยว/อิ้น ดินเปียก)</strong></td><td>15%</td><td>การศึกษา ความรู้ลึกซึ้ง ไหวพริบ ความกตัญญู</td></tr>
+          <tr><td><strong>Seven Killings (七杀 ชีซั่วะ)</strong></td><td>12%</td><td>ความกล้าตัดสินใจ บารมี อำนาจ การแก้ปัญหาเฉพาะหน้า</td></tr>
+          <tr><td><strong>Output & Wealth (食伤/财星 น้ำ-ไม้)</strong></td><td>10%</td><td>สติปัญญา การลงทุน ไอเดียสร้างสรรค์ (รอการกระตุ้น)</td></tr>
+        </table>
+      </div>
+
+      <div class="info-card">
+        <h4>🎯 เทพเกื้อหนุน & เทพให้โทษ (Yong Shen / Xi Shen)</h4>
+        <p>เนื่องจากดวงเป็น <strong>ทองแข็งแกร่งสูงสุด (身旺极金)</strong> ธาตุที่ต้องการที่สุดคือ:</p>
+        <ul style="padding-left: 18px; margin-top: 8px;">
+          <li><strong class="elem-water">ธาตุน้ำ (食伤 เทพถ่ายเท/ปัญญา):</strong> เคล็ดวิชา <em>"辛金喜壬水淘洗"</em> (ทองซินต้องการน้ำยิ้มชำระล้างให้เป็นประกายเจิดจรัส) น้ำคือการระบายพลัง แสดงความสามารถ สร้างเงินทอง</li>
+          <li><strong class="elem-wood">ธาตุไม้ (财星 เทพโชคลาภ/การเงิน):</strong> เป็นเป้าหมายที่ทำให้พลังงานทองแปรเปลี่ยนเป็นความมั่งคั่งที่จับต้องได้</li>
+          <li><strong class="elem-fire">ธาตุไฟ (官杀 เทพชื่อเสียง/ตำแหน่ง):</strong> ควบคุมขัดเกลาให้ทองมีรูปทรงสวยงาม แต่ต้องไม่ร้อนจนแผดเผาน้ำ</li>
+          <li><span class="elem-metal" style="text-decoration: line-through;">ธาตุทองหนาแน่น</span> และ <span class="elem-earth" style="text-decoration: line-through;">ธาตุดินแห้ง</span>: ควรหลีกเลี่ยงการสะสมดินหนาเพราะจะฝังกลบประกายเพชร</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Symbolic Stars & General Stars -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">✨</span> 2. ดวงดาวมงคล & ดาวสั่วะในดวงชะตา (Symbolic & General Stars)</h2>
+    
+    <div class="cards-grid">
+      <div class="info-card">
+        <h4>🌟 ดาวมงคลประจำดวงชะตา (Auspicious Stars)</h4>
+        <div>
+          <span class="star-tag star-auspicious">★ ลกซิ้ง (禄神 Lu Star - เสาเดือน 酉)</span> : ดาวขุมทรัพย์ประจำตัว ดวงไม่อดอยาก มีทรัพย์สินมั่นคง<br>
+          <span class="star-tag star-auspicious">★ เจียงซิ้ง (将星 General Star - 酉)</span> : ดาวแม่ทัพ ผู้นำองค์กร มีอำนาจการสั่งการ คุมบริวารได้ดี<br>
+          <span class="star-tag star-auspicious">★ ฮวาไก่ (华盖 Elegant Star - เสายาม 丑 & เสาปี 辰)</span> : สติปัญญาสูงส่ง ลึกซึ้งในปรัชญา โหราศาสตร์ และศิลปะชั้นสูง<br>
+          <span class="star-tag star-auspicious">★ เทพอุปถัมภ์ฟ้า (天乙贵人 Tian Yi Gui Ren)</span> : สถิตในวัยจร/ปีจร (午 และ 寅) เมื่อเข้าตาจนจะมีคนยื่นมือช่วยเสมอ
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h4>⚠️ ดาวที่ต้องระวังและควบคุม (Special Challenges)</h4>
+        <div>
+          <span class="star-tag star-warning">▲ กั่วซิ่ว (寡宿 Solitary Star - 丑)</span> : มีช่วงเวลาที่ชอบอยู่สันโดษ คิดมากในเรื่องลึกซึ้ง โดดเดี่ยวทางความคิด<br>
+          <span class="star-tag star-neutral">▲ ถ่อฮวย (桃花 Peach Blossom Star - 午 ในปี 2569)</span> : เสน่ห์ดึงดูด ผู้คนเข้าหามาก ต้องระวังเรื่องความสัมพันธ์ซับซ้อน<br>
+          <span class="star-tag star-warning">▲ ลิ่วฮาย / พั่ว (丑午害 & 午酉破)</span> : เกิดความระหองระแหงกับบริวาร หรือความแปรปรวนในระบบการจัดการภายใน
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: In-depth 2026 Bing Wu Analysis -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">🔥</span> 3. ภาพรวมปี พ.ศ. 2569 (ปีเปี้ยโง่ว 丙午 - ม้าเพลิง / Bing Wu)</h2>
+    
+    <div class="highlight-box">
+      <p style="font-size: 15.5px;">
+        ปี พ.ศ. 2569 คือปี <strong>丙午 (เปี้ยโง่ว - ม้าไฟหยางบริสุทธิ์)</strong> ซึ่งตรงกับช่วงวัยจรใหญ่ <strong>壬辰 (ยิ้มซิ้ง - น้ำบนมังกร อายุ 46-55)</strong> พอดี! 
+        เกิดปรากฏการณ์ <strong>"丙壬相照" (สุริยันส่องประกายเหนือมหาสมุทร)</strong> ส่งผลให้เป็นปีแห่ง <strong>การเปิดตัว การมีชื่อเสียง การได้รับการยอมรับในวงกว้าง และอำนาจบารมีพุ่งทะยานสูงสุด</strong> 
+        แต่เนื่องจากราศีบน 丙 (ไฟเจิ้งกัว) มาภาคีซ้ำกับ 辛 (ดิถี) และปะทะเบาๆ กับ 壬 (ดาวชางกวนในวัยจร) จึงต้องระวังเรื่องการแสดงออกทางคำพูด สัญญาเอกสาร และการรับภาระงานที่หนักเกินตัว
+      </p>
+    </div>
+
+    <div class="cards-grid">
+      <div class="info-card">
+        <h4>🏛️ ปฏิสัมพันธ์กับเสาดวง (Pillar Interactions)</h4>
+        <ul style="padding-left: 18px; line-height: 1.7;">
+          <li><strong>ราศีบน 丙 (ไฟหยาง):</strong> นำพาตำแหน่ง หน้าที่เกียรติยศ การติดต่อกับหน่วยงานรัฐ หรือผู้มีอำนาจเข้ามา</li>
+          <li><strong>ราศีล่าง 午 (ม้าไฟ):</strong> 
+            <br>• เป็น <em>เทพอุปถัมภ์ (天乙贵人)</em> ให้แก่ดิถี 辛
+            <br>• ทำปฏิกิริยา <em>午酉破 (พั่วกับเสาเดือน)</em>: การปรับเปลี่ยนโครงสร้างงานหรือรูปแบบธุรกิจเดิม
+            <br>• ทำปฏิกิริยา <em>丑午害 (ฮายกับเสายาม)</em>: ต้องรอบคอบเรื่องการลงทุนระยะสั้น และใส่ใจสุขภาพของบริวาร/ลูกน้อง
+          </li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h4>⚡ ฉีเหมินตุ้นเจี่ย & ซวนคงต้ากว้า ประจำปี 2569</h4>
+        <ul style="padding-left: 18px; line-height: 1.7;">
+          <li><strong>รหัสกว้า 9 หลี่ (離卦 - ทิศใต้):</strong> ประจำทิศธาตุไฟ ปี 2569 พลังไฟเข้าสู่วังหลี่เต็มเปี่ยม ส่งเสริมพลังอำนาจและเสน่ห์</li>
+          <li><strong>ดาวบินยุค 9 (Period 9 Fire):</strong> พลังงานเกื้อหนุนสายงานความรู้ ปัญญา ที่ปรึกษา โหราศาสตร์ พลังงาน และออนไลน์</li>
+          <li><strong>ประตูฉีเหมินสำคัญ:</strong> ประตูเปิด (開門 Open Door) อยู่ทางทิศตะวันตกเฉียงเหนือ เหมาะแก่การเจรจาการงาน และประตูเกิด (生門 Life Door) ทางทิศตะวันออกเฉียงเหนือ เหมาะแก่การเรียกกระแสเงินสด</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Detailed Breakdown: Sep 2026 - Feb 2027 -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">📅</span> 4. วิเคราะห์เจาะลึกรายเดือน: กันยายน 2569 – กุมภาพันธ์ 2570</h2>
+    
+    <div class="timeline">
       
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35 * scale, 0.5 * scale, 3.5 * scale, 8), trunkMat);
-      trunk.position.y = (3.5 * scale) / 2;
-      trunk.castShadow = true;
-      tree.add(trunk);
+      <!-- Month 1: Sep 2026 -->
+      <div class="month-item">
+        <div class="month-dot"></div>
+        <div class="month-content">
+          <div class="month-header">
+            <div class="month-title">กันยายน 2569 (7 ก.ย. – 7 ต.ค. 2569) : เดือนเต็งอิ้ว 丁酉 (ไก่ไฟหยิน)</div>
+            <div class="month-gz">丁酉 • ซ้ำเสาเดือนเกิด (伏吟 Fu Yin)</div>
+          </div>
+          <p>เป็นเดือนที่พลังของดาว <strong>ชีซั่วะ (丁)</strong> และ <strong>ดาวลกซิ้ง (酉)</strong> ทรงพลังเป็น 2 เท่าเนื่องจากทับกับเสาเดือนเกิดเดิม การงานจะมีความท้าทายสูง มีแรงกดดันจากภายนอก แต่คุณจะมีพลังในการสั่งการและควบคุมสถานการณ์ได้อย่างเบ็ดเสร็จ</p>
+          <div class="month-grid">
+            <div class="sub-box">
+              <h5>💼 การงาน & ธุรกิจ</h5>
+              <p>เกิดการตัดสินใจครั้งใหญ่ มีโปรเจกต์ด่วนที่ต้องใช้ภาวะผู้นำ ห้ามลังเล บริวารจะพึ่งพาคุณเป็นหลัก</p>
+            </div>
+            <div class="sub-box">
+              <h5>💰 การเงิน & โชคลาภ</h5>
+              <p>มีรายได้เข้าก้อนใหญ่ตามกำลังงาน แต่อาจมีรายจ่ายเพื่อขยายงานหรือดูแลบริวาร</p>
+            </div>
+            <div class="sub-box">
+              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
+              <p>ระวังอาการปวดเมื่อยไหล่ คอ บ่า ระบบทางเดินหายใจ และความเครียดสะสมจากการแบกรับงาน</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      const c1 = new THREE.Mesh(new THREE.ConeGeometry(2.0 * scale, 6 * scale, 10), foliageMat);
-      c1.position.y = 4.5 * scale;
-      c1.castShadow = true;
-      tree.add(c1);
+      <!-- Month 2: Oct 2026 -->
+      <div class="month-item">
+        <div class="month-dot"></div>
+        <div class="month-content">
+          <div class="month-header">
+            <div class="month-title">ตุลาคม 2569 (8 ต.ค. – 6 พ.ย. 2569) : เดือนโบ่วสุก 戊戌 (หมาดินแห้ง)</div>
+            <div class="month-gz">戊戌 • ชงคลังมังกร (辰戌相冲 Chen-Xu Clash)</div>
+          </div>
+          <p>เกิดปรากฏการณ์ <strong>辰戌冲 (ชงระหว่างมังกรในดวงกับหมาในเดือน)</strong> ซึ่งเป็นการปะทะของธาตุดิน (คลังสมบัติและอสังหาริมทรัพย์) มีเกณฑ์การเคลื่อนไหวของสินทรัพย์ การซ่อมแซมบ้าน ปรับปรุงสถานที่ทำงาน หรือการจัดการเอกสารมรดก/ที่ดิน</p>
+          <div class="month-grid">
+            <div class="sub-box">
+              <h5>💼 การงาน & ธุรกิจ</h5>
+              <p>การปรับเปลี่ยนโครงสร้างออฟฟิศ ย้ายโต๊ะทำงาน หรือเจรจาเรื่องสัญญาอสังหาริมทรัพย์/สัญญาเช่า</p>
+            </div>
+            <div class="sub-box">
+              <h5>💰 การเงิน & โชคลาภ</h5>
+              <p><strong>"ชงคลังดินเปิดขุมทรัพย์"</strong> มีเงินก้อนเข้าจากการขายสินทรัพย์ หรือได้กำไรจากการลงทุนระยะยาว</p>
+            </div>
+            <div class="sub-box">
+              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
+              <p>ระบบทางเดินอาหาร กรดไหลย้อน กระเพาะ ม้าม และระวังอุบัติเหตุจากการสะดุดหกล้ม</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      const c2 = new THREE.Mesh(new THREE.ConeGeometry(1.6 * scale, 5 * scale, 10), foliageMat);
-      c2.position.y = 7.2 * scale;
-      c2.castShadow = true;
-      tree.add(c2);
+      <!-- Month 3: Nov 2026 -->
+      <div class="month-item">
+        <div class="month-dot"></div>
+        <div class="month-content">
+          <div class="month-header">
+            <div class="month-title">พฤศจิกายน 2569 (7 พ.ย. – 6 ธ.ค. 2569) : เดือนจี่ไห 己亥 (หมูดินหยิน)</div>
+            <div class="month-gz">己亥 • ชงวังคู่ครอง/ตัวตน (巳亥相冲 Si-Hai Clash)</div>
+          </div>
+          <p>ราศีล่าง 亥 (กุน/น้ำ) เข้ามาปะทะกับ 巳 (มะเส็ง/ไฟ) ที่เสาวันเกิด (วังคู่ครองและสุขภาพ) ถือเป็นเดือนแห่ง <strong>การเดินทางไกล การเปลี่ยนแปลงทางอารมณ์ และความสัมพันธ์</strong></p>
+          <div class="month-grid">
+            <div class="sub-box">
+              <h5>💼 การงาน & ธุรกิจ</h5>
+              <p>ต้องเดินทางบ่อย ไม่อยู่กับที่ การเจรจากับต่างถิ่นต่างแดนหรือออนไลน์จะให้ผลลัพธ์ดีเลิศ</p>
+            </div>
+            <div class="sub-box">
+              <h5>💰 การเงิน & โชคลาภ</h5>
+              <p>เงินหมุนเวียนเร็ว ไหลเข้าและออกตามการเดินทาง ควรงดการให้ผู้อื่นหยิบยืมในเดือนนี้</p>
+            </div>
+            <div class="sub-box">
+              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
+              <p>ความใจร้อนกับคู่ครอง/คนใกล้ชิด, ระวังระบบหัวใจ ความดัน สายตา และระบบสืบพันธุ์สตรี</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      const c3 = new THREE.Mesh(new THREE.ConeGeometry(1.1 * scale, 4 * scale, 10), foliageMat);
-      c3.position.y = 9.5 * scale;
-      c3.castShadow = true;
-      tree.add(c3);
+      <!-- Month 4: Dec 2026 -->
+      <div class="month-item">
+        <div class="month-dot"></div>
+        <div class="month-content">
+          <div class="month-header">
+            <div class="month-title">ธันวาคม 2569 (7 ธ.ค. 2569 – 4 ม.ค. 2570) : เดือนแกจื้อ 庚子 (หนูทองหยาง)</div>
+            <div class="month-gz">庚子 • ชงปีจร (子午相冲 Zi-Wu Clash)</div>
+          </div>
+          <p>ราศีล่าง 子 (น้ำหนู) ปะทะกับ 午 (ม้าไฟแห่งปี 2569) เป็นศึกระหว่างน้ำกับไฟ (Water-Fire Battle) ส่งผลให้เกิดความคึกคักอย่างยิ่ง ความคิดสร้างสรรค์พุ่งพล่าน แต่ต้องระวังอารมณ์ขึ้นลงรวดเร็ว</p>
+          <div class="month-grid">
+            <div class="sub-box">
+              <h5>💼 การงาน & ธุรกิจ</h5>
+              <p>ไอเดียใหม่ๆ บรรเจิด ได้รับโอกาสทางการตลาดใหม่ มีการแข่งขันสูงแต่คุณมีไหวพริบเหนือกว่า</p>
+            </div>
+            <div class="sub-box">
+              <h5>💰 การเงิน & โชคลาภ</h5>
+              <p>โชคลาภลอยเด่น มีโอกาสได้เงินพิเศษหรือของขวัญมีค่าจากผู้ใหญ่</p>
+            </div>
+            <div class="sub-box">
+              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
+              <p>นอนไม่หลับ อารมณ์แปรปรวน ระวังระบบหลอดเลือดและสายตา ควรผ่อนคลายด้วยการนั่งสมาธิ</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      tree.position.set(x, 0, z);
-      return tree;
-    }
+      <!-- Month 5: Jan 2027 -->
+      <div class="month-item">
+        <div class="month-dot"></div>
+        <div class="month-content">
+          <div class="month-header">
+            <div class="month-title">มกราคม 2570 (5 ม.ค. – 3 ก.พ. 2570) : เดือนซินฉิ่ว 辛丑 (วัวทองหยิน)</div>
+            <div class="month-gz">辛丑 • ซ้ำเสายาม & ไตรภาคีทองรอบใหม่ (Si-You-Chou)</div>
+          </div>
+          <p>ดิถีตัวตน 辛 ปรากฏบนฟ้า และ 丑 ดินเปียกเข้ามารวมกับ 巳 และ 酉 ในดวง ครบไตรภาคีทองเต็มกำลัง เป็นเดือนแห่งการสรุปยอดผลงาน การรวมกลุ่มพันธมิตร และการเก็บเกี่ยวผลกำไรปลายปี</p>
+          <div class="month-grid">
+            <div class="sub-box">
+              <h5>💼 การงาน & ธุรกิจ</h5>
+              <p>ปิดดีลใหญ่ การเซ็นสัญญาความร่วมมือ พันธมิตรธุรกิจและเพื่อนร่วมงานให้การสนับสนุนเต็มที่</p>
+            </div>
+            <div class="sub-box">
+              <h5>💰 การเงิน & โชคลาภ</h5>
+              <p>การเงินมีเสถียรภาพสูงมาก เงินก้อนปลายปี โบนัส หรือปันผลจากการลงทุนงอกเงยชัดเจน</p>
+            </div>
+            <div class="sub-box">
+              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
+              <p>ระวังความดื้อรั้นหรือยึดมั่นถือมั่นเกินไป และดูแลเรื่องระบบย่อยอาหาร/ไขข้อ</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    for (let z = 42; z <= 95; z += 13) {
-      landscapeGroup.add(createCypressTree(-7, z, 0.95));
-      landscapeGroup.add(createCypressTree(7, z, 0.95));
-    }
+      <!-- Month 6: Feb 2027 -->
+      <div class="month-item">
+        <div class="month-dot"></div>
+        <div class="month-content">
+          <div class="month-header">
+            <div class="month-title">กุมภาพันธ์ 2570 (4 ก.พ. – 4 มี.ค. 2570) : เดือนยิ้มเอี๊ยง 壬寅 (เสือน้ำหยาง)</div>
+            <div class="month-gz">壬寅 • ก้าวเข้าสู่ปีเต็งบี่ 丁未 (ปีแพะ 2570)</div>
+          </div>
+          <p>เข้าสู่วสันตฤดู (วันสารทหลิบชุน - 立春) เปลี่ยนผ่านสู่ปี <strong>丁未 (เต็งบี่)</strong> พลังงานน้ำ 壬 ชำระล้างทอง 辛 ร่วมกับ 寅 (เสือไม้/เทพอุปถัมภ์) นำพากระแสการเงินใหม่ๆ และการเริ่มต้นธุรกิจรอบใหม่ที่สดใส</p>
+          <div class="month-grid">
+            <div class="sub-box">
+              <h5>💼 การงาน & ธุรกิจ</h5>
+              <p>การเปิดตัวผลิตภัณฑ์ใหม่ เริ่มต้นโครงการใหม่ ได้รับมอบหมายโปรเจกต์ระดับยุทธศาสตร์</p>
+            </div>
+            <div class="sub-box">
+              <h5>💰 การเงิน & โชคลาภ</h5>
+              <p>ดาวโชคลาภ (财星) เริ่มทำงานอย่างเต็มตัว กระแสเงินสดไหลเวียนคล่องตัวมากยิ่งขึ้น</p>
+            </div>
+            <div class="sub-box">
+              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
+              <p>สุขภาพสดชื่นกระปรี้กระเปร่า ระวังเพียงอาการภูมิแพ้อากาศและการพักผ่อนไม่เพียงพอ</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    [
-      [-42, 10], [-48, -15], [-40, -35], [0, -48], [40, -35], [48, -15], [42, 10],
-      [-55, 30], [55, 30], [-60, 75], [60, 75], [-20, 85], [20, 85]
-    ].forEach(([tx, tz]) => {
-      const s = 1.1 + Math.random() * 0.4;
-      landscapeGroup.add(createCypressTree(tx, tz, s));
-    });
+    </div>
+  </section>
 
-    // ==========================================
-    // 7. ANIMATION & LIGHTING MODES
-    // ==========================================
-    const clock = new THREE.Clock();
+  <!-- Section 5: Strategic Advice, Wealth, Career & Remedies -->
+  <section class="section">
+    <h2 class="section-title"><span class="icon">🛡️</span> 5. ข้อเสนอแนะเชิงยุทธศาสตร์ & เคล็ดลับการเสริมดวง (Remedies & Mastery)</h2>
+    
+    <div class="action-grid">
+      
+      <!-- Career -->
+      <div class="action-card career">
+        <h4>💼 ยุทธศาสตร์ด้านการงาน</h4>
+        <ul>
+          <li><strong>ตำแหน่งผู้นำและการบริหาร:</strong> ด้วยโครงสร้าง <em>建禄格 + 七杀</em> ดวงชะตานี้เหมาะกับการเป็นผู้บริหาร ที่ปรึกษาระดับสูง หรือเจ้าของกิจการที่ต้องใช้อำนาจตัดสินใจ</li>
+          <li><strong>การใช้พลังน้ำ (การสื่อสาร/กลยุทธ์):</strong> ในช่วงวัยจร 壬辰 ควรเน้นงานด้านการถ่ายทอด การสร้างแบรนด์ การตลาดดิจิทัล และการให้คำปรึกษา</li>
+          <li><strong>ระวังข้อสัญญาในเดือน ต.ค. & พ.ย. 69:</strong> ตรวจสอบเอกสารทางกฎหมายอย่างรอบคอบ หลีกเลี่ยงการใช้อารมณ์ในการเจรจา</li>
+        </ul>
+      </div>
 
-    function animate() {
-      requestAnimationFrame(animate);
-      const elapsed = clock.getElapsedTime();
+      <!-- Wealth -->
+      <div class="action-card wealth">
+        <h4>💰 ยุทธศาสตร์ด้านการเงิน</h4>
+        <ul>
+          <li><strong>แปลงกระแสเงินสดเป็นสินทรัพย์:</strong> ดวงธาตุทองแข็งแกร่ง ควรแปลงผลกำไรเป็น <em>อสังหาริมทรัพย์, ที่ดิน หรือทองคำแท่ง</em> เพื่อล็อคความมั่งคั่ง</li>
+          <li><strong>โอกาสเปิดขุมทรัพย์ (ต.ค. 69 & ม.ค. 70):</strong> เป็นช่วงจังหวะที่ดีที่สุดในการขายทำกำไรสินทรัพย์ หรือเจรจาปรับเพิ่มผลตอบแทน</li>
+          <li><strong>หลีกเลี่ยงการเก็งกำไรความเสี่ยงสูงจัดในเดือน ธ.ค. 69:</strong> ช่วง 子午冲 กระแสเงินผันผวนสูง ให้เน้นความแน่นอนเป็นหลัก</li>
+        </ul>
+      </div>
 
-      // เปลวไฟคบเพลิงพริ้วไหว
-      torchLights.forEach((t, idx) => {
-        const noise = Math.sin(elapsed * 9 + idx * 1.5) * 0.15 + Math.cos(elapsed * 17 + idx) * 0.1;
-        t.light.intensity = t.baseIntensity + noise;
-      });
+      <!-- Health & Relationship -->
+      <div class="action-card health">
+        <h4>🌿 สุขภาพ & ความสัมพันธ์</h4>
+        <ul>
+          <li><strong>อวัยวะที่ต้องดูแล:</strong> ปอด ทางเดินหายใจ ผิวหนัง (ธาตุทอง), ม้าม กระเพาะอาหาร (ธาตุดิน), และระบบไหลเวียนโลหิต/หัวใจ (ธาตุไฟ)</li>
+          <li><strong>การปรับสมดุลธาตุ:</strong> ดื่มน้ำสะอาดให้เพียงพอ ฝึกโยคะหรือสมาธิเพื่อระบายความร้อนในร่างกาย (金水相生)</li>
+          <li><strong>ความสัมพันธ์คู่ครอง:</strong> เสาวัน 辛巳 ในเดือน พ.ย. 69 (巳亥冲) ควรชวนคู่ครองเดินทางท่องเที่ยวเปลี่ยนบรรยากาศ เพื่อแปลงการปะทะเป็นการเดินทางร่วมกัน</li>
+        </ul>
+      </div>
 
-      // ผิวน้ำกระเพื่อมเบาๆ
-      moat.rotation.z = Math.sin(elapsed * 0.3) * 0.005;
+      <!-- Feng Shui & QMDJ Remedies -->
+      <div class="action-card fengshui">
+        <h4>🔮 เคล็ดฮวงจุ้ย & ฉีเหมินตุ้นเจี่ย</h4>
+        <ul>
+          <li><strong>ทิศมงคลประจำตัว (รหัสกว้า 9 หลี่):</strong>
+            <br>• <em>ทิศตะวันออก (生氣 แดนกำเนิด):</em> ตั้งโต๊ะทำงานหันหน้าทิศนี้ เสริมพลังอำนาจและความก้าวหน้า
+            <br>• <em>ทิศเหนือ (延年 ยืนยาว):</em> เสริมความสัมพันธ์และความราบรื่นในครอบครัว
+          </li>
+          <li><strong>การจัดฮวงจุ้ยแก้เคล็ดช่วง ก.ย. 69 - ก.พ. 70:</strong>
+            <br>• วาง <strong>น้ำพุ/น้ำล้นเคลื่อนไหว (Water Feature)</strong> ในทิศเหนือหรือทิศตะวันออก เพื่อดึงพลังน้ำมาขัดเกลาทอง 辛 ให้เจิดจรัส
+            <br>• ใช้โทนสี <strong>น้ำเงิน, ฟ้า, ดำ (ธาตุน้ำ)</strong> และ <strong>เขียว (ธาตุไม้)</strong> ในการแต่งกายและการตกแต่ง เพื่อถ่ายเทพลังงานส่วนเกินให้กลายเป็นทรัพย์
+          </li>
+          <li><strong>การทำบุญเสริมดวง:</strong> ถวายน้ำดื่มบริสุทธิ์, บริจาคโลหิต/เครื่องมือแพทย์ (แก้เคล็ดเรื่องผ่าตัด/ชงในเดือน พ.ย.), และปล่อยปลา/สัตว์น้ำ</li>
+        </ul>
+      </div>
 
-      controls.update();
-      renderer.render(scene, camera);
-    }
+    </div>
+  </section>
 
-    setTimeout(() => {
-      const loader = document.getElementById('loader');
-      if (loader) {
-        loader.style.opacity = '0';
-        setTimeout(() => loader.remove(), 600);
-      }
-    }, 400);
+  <!-- Summary Conclusion -->
+  <div class="highlight-box" style="text-align: center; border-color: var(--secondary-gold);">
+    <h3 style="color: var(--secondary-gold); font-size: 18px; margin-bottom: 10px;">🌟 บทสรุปคำทำนายชะตาชีวิต</h3>
+    <p style="font-size: 15px; max-width: 900px; margin: 0 auto; line-height: 1.8;">
+      ดวงชะตานี้คือ <strong>"เพชรน้ำเอกในเบ้าหลอมแห่งเกียรติยศ"</strong> มีโครงสร้างไตรภาคีทอง <em>巳酉丑</em> ที่มั่นคงแข็งแกร่งดั่งหินผา 
+      ในช่วงเดือนกันยายน 2569 ถึงกุมภาพันธ์ 2570 แม้จะมีคลื่นลมแห่งการปรับเปลี่ยน (ชงคลังดินในเดือน ต.ค. และชงวังวันในเดือน พ.ย.) 
+      แต่ด้วยแรงหนุนจาก <strong>เทพอุปถัมภ์แห่งปี (午)</strong> และวัยจร <strong>ยิ้มซิ้ง (壬辰)</strong> จะแปรเปลี่ยนความท้าทายให้กลายเป็น <strong>ความสำเร็จ ชื่อเสียง และความมั่งคั่งอย่างงดงาม</strong>
+    </p>
+  </div>
 
-    animate();
+  <footer class="footer">
+    <p>© รายงานวิเคราะห์ดวงชะตาจีนชั้นสูงตามหลักวิชาการโหราศาสตร์ชั้นครู (BaZi, QMDJ, Ba Zhai & Da Gua)</p>
+  </footer>
 
-    // ==========================================
-    // 8. INTERACTIVE FUNCTIONS & PRESETS
-    // ==========================================
-    function setLighting(mode) {
-      document.querySelectorAll('.controls-panel .btn').forEach(b => {
-        if (b.id.startsWith('btn-sun') || b.id.startsWith('btn-night') || b.id.startsWith('btn-sunset')) {
-          b.classList.remove('active');
-        }
-      });
+</div>
 
-      if (mode === 'day') {
-        document.getElementById('btn-sun').classList.add('active');
-        scene.background.setHex(0xdbeafe);
-        scene.fog.color.setHex(0xdbeafe);
-        ambientLight.intensity = 0.45;
-        ambientLight.color.setHex(0xffffff);
-        hemiLight.intensity = 0.55;
-        hemiLight.color.setHex(0xe0f2fe);
-        hemiLight.groundColor.setHex(0x3f382a);
-        sunLight.intensity = 1.4;
-        sunLight.color.setHex(0xfffaed);
-        sunLight.position.set(60, 90, 50);
-        torchLights.forEach(t => t.baseIntensity = 0.8);
-      } else if (mode === 'sunset') {
-        document.getElementById('btn-sunset').classList.add('active');
-        scene.background.setHex(0x3b1d28);
-        scene.fog.color.setHex(0x3b1d28);
-        ambientLight.intensity = 0.35;
-        ambientLight.color.setHex(0xfb923c);
-        hemiLight.intensity = 0.4;
-        hemiLight.color.setHex(0xf472b6);
-        hemiLight.groundColor.setHex(0x1c1917);
-        sunLight.intensity = 1.8;
-        sunLight.color.setHex(0xf97316);
-        sunLight.position.set(90, 25, 40);
-        torchLights.forEach(t => t.baseIntensity = 1.8);
-      } else if (mode === 'night') {
-        document.getElementById('btn-night').classList.add('active');
-        scene.background.setHex(0x060913);
-        scene.fog.color.setHex(0x060913);
-        ambientLight.intensity = 0.12;
-        ambientLight.color.setHex(0x38bdf8);
-        hemiLight.intensity = 0.15;
-        hemiLight.color.setHex(0x1e293b);
-        hemiLight.groundColor.setHex(0x020617);
-        sunLight.intensity = 0.3;
-        sunLight.color.setHex(0x93c5fd);
-        sunLight.position.set(-40, 70, -40);
-        torchLights.forEach(t => t.baseIntensity = 3.2);
-      }
-    }
-
-    function toggleAutoRotate() {
-      const btn = document.getElementById('btn-rotate');
-      controls.autoRotate = !controls.autoRotate;
-      if (controls.autoRotate) {
-        btn.classList.add('active');
-        btn.innerHTML = '🔄 หมุนอัตโนมัติ (On)';
-      } else {
-        btn.classList.remove('active');
-        btn.innerHTML = '⏸️ หมุนอัตโนมัติ (Off)';
-      }
-    }
-
-    function setView(view) {
-      controls.autoRotate = false;
-      const btnRot = document.getElementById('btn-rotate');
-      if (btnRot) {
-        btnRot.classList.remove('active');
-        btnRot.innerHTML = '⏸️ หมุนอัตโนมัติ (Off)';
-      }
-
-      if (view === 'front') {
-        animateCamera({ x: 0, y: 22, z: 82 }, { x: 0, y: 12, z: 15 });
-      } else if (view === 'garden') {
-        animateCamera({ x: -45, y: 14, z: 65 }, { x: 0, y: 8, z: 45 });
-      } else if (view === 'spires') {
-        animateCamera({ x: 28, y: 46, z: 36 }, { x: 0, y: 25, z: 0 });
-      } else if (view === 'top') {
-        animateCamera({ x: 0, y: 110, z: 40 }, { x: 0, y: 5, z: 0 });
-      }
-    }
-
-    function animateCamera(targetPos, targetLookAt) {
-      const startPos = camera.position.clone();
-      const startTarget = controls.target.clone();
-      const duration = 1200;
-      const startTime = performance.now();
-
-      function updateCam(now) {
-        const progress = Math.min((now - startTime) / duration, 1);
-        const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-
-        camera.position.lerpVectors(startPos, new THREE.Vector3(targetPos.x, targetPos.y, targetPos.z), ease);
-        controls.target.lerpVectors(startTarget, new THREE.Vector3(targetLookAt.x, targetLookAt.y, targetLookAt.z), ease);
-
-        if (progress < 1) {
-          requestAnimationFrame(updateCam);
-        }
-      }
-      requestAnimationFrame(updateCam);
-    }
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  </script>
 </body>
 </html>

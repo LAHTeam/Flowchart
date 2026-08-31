@@ -2,935 +2,760 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>คัมภีร์วิเคราะห์ดวงชะตาจีนขั้นสูง (ปาจื่อ & ฉีเหมินตุ้นเจี่ย) พ.ศ. 2569 - 2570</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Sarabun:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>คู่มือคัดลอกระบบ CE F.A.I.R. ไปยังอาคาร/ห้องปฏิบัติการอื่น (Deployment Guide)</title>
 <style>
-:root {
-  --primary-gold: #cfa856;
-  --secondary-gold: #e5c158;
-  --accent-red: #8b1e1e;
-  --bright-red: #c0392b;
-  --dark-bg: #0d1117;
-  --card-bg: #161b22;
-  --card-border: #30363d;
-  --text-main: #e6edf3;
-  --text-muted: #8b949e;
-  --fire-color: #ff5e57;
-  --earth-color: #e5a93c;
-  --metal-color: #d2dae2;
-  --water-color: #3498db;
-  --wood-color: #2ecc71;
+:root{
+  --primary:#661003;--primary-2:#8c1a05;--navy:#183666;--navy-2:#2756a8;
+  --bg:#f6f7fb;--card:#ffffff;--line:#e2e8f0;--line-2:#eef2f6;
+  --text:#1f2937;--muted:#64748b;--soft:#475569;
+  --ok:#15884b;--ok-bg:#f0fdf4;
+  --warn:#b45309;--warn-bg:#fffbeb;
+  --danger:#b91c1c;--danger-bg:#fef2f2;
+  --info:#1d4ed8;--info-bg:#eff6ff;
+  --code-bg:#0f1b33;--code-fg:#e6edf7;
 }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Sarabun','Segoe UI',system-ui,sans-serif;margin:0;background:var(--bg);color:var(--text);line-height:1.7;font-size:15px}
+a{color:var(--navy-2)}
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+header{position:relative;background:
+  radial-gradient(1200px 400px at 10% 0%,rgba(255,255,255,.18),transparent 60%),
+  radial-gradient(900px 400px at 100% 100%,rgba(255,255,255,.12),transparent 60%),
+  linear-gradient(135deg,var(--primary) 0%,var(--primary-2) 45%,var(--navy) 100%);
+  color:#fff;padding:56px 24px 80px}
+header .wrap{max-width:1000px;margin:0 auto}
+header .badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:4px 12px;border-radius:999px;font-size:.8rem;letter-spacing:.5px;margin-bottom:14px}
+header h1{margin:0 0 10px;font-size:1.9rem;line-height:1.3;font-weight:700}
+header p{margin:0;opacity:.95;max-width:780px;font-size:1.02rem}
+header .meta{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px}
+header .meta span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:4px 10px;border-radius:6px;font-size:.82rem}
 
-body {
-  font-family: 'Sarabun', sans-serif;
-  background-color: var(--dark-bg);
-  color: var(--text-main);
-  line-height: 1.7;
-  font-size: 15px;
-  background-image: 
-    radial-gradient(circle at 15% 15%, rgba(207, 168, 86, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(139, 30, 30, 0.08) 0%, transparent 50%);
-}
+.progress{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 24px}
+.progress .wrap{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.progress .bar{flex:1;height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+.progress .fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--navy-2));transition:width .3s ease}
+.progress label{font-size:.85rem;color:var(--soft);white-space:nowrap}
+.progress label b{color:var(--primary)}
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 30px 20px 80px 20px;
-}
+main{max-width:1000px;margin:-50px auto 0;padding:0 24px 40px;position:relative}
 
-/* Header & Hero */
-.hero {
-  text-align: center;
-  padding: 50px 20px 40px;
-  background: linear-gradient(180deg, rgba(22, 27, 34, 0.9) 0%, rgba(13, 17, 23, 0.95) 100%);
-  border: 1px solid var(--card-border);
-  border-top: 4px solid var(--primary-gold);
-  border-radius: 12px;
-  margin-bottom: 35px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  position: relative;
-}
+.intro{background:linear-gradient(135deg,#fff,#fef3f0);border:1px solid #f3d8cf;border-radius:14px;padding:20px 24px;margin-bottom:24px;box-shadow:0 6px 16px rgba(102,16,3,.06)}
+.intro h2{margin:0 0 6px;font-size:1.15rem;color:var(--primary);display:flex;align-items:center;gap:8px}
+.intro p{margin:6px 0;color:var(--soft);font-size:.95rem}
+.intro .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.intro .pill{background:#fff;border:1px solid var(--line);padding:5px 10px;border-radius:999px;font-size:.82rem;color:var(--soft)}
+.intro .pill b{color:var(--primary)}
 
-.hero::after {
-  content: "☯";
-  position: absolute;
-  top: 15px;
-  right: 25px;
-  font-size: 32px;
-  color: rgba(207, 168, 86, 0.2);
-}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:28px;box-shadow:0 4px 10px rgba(0,0,0,.04)}
+.toc h2{margin:0 0 12px;font-size:1.1rem;color:var(--navy);display:flex;align-items:center;gap:8px}
+.toc ol{margin:0;padding-left:24px;columns:2;column-gap:32px}
+.toc li{margin:4px 0;break-inside:avoid}
+.toc a{color:var(--navy);text-decoration:none;font-size:.92rem}
+.toc a:hover{color:var(--primary);text-decoration:underline}
 
-.hero h1 {
-  font-family: 'Cinzel', 'Sarabun', serif;
-  color: var(--secondary-gold);
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-}
+.step{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:18px 0;box-shadow:0 2px 6px rgba(0,0,0,.04);overflow:hidden;transition:box-shadow .2s}
+.step:hover{box-shadow:0 6px 16px rgba(0,0,0,.07)}
+.step-h{display:flex;gap:14px;align-items:center;padding:16px 22px;border-bottom:1px solid var(--line-2);background:linear-gradient(180deg,#fdfefe,#fafbfc)}
+.num{flex:0 0 44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.05rem;box-shadow:0 4px 8px rgba(102,16,3,.25)}
+.step-h h2{margin:0;font-size:1.1rem;color:var(--navy);font-weight:600}
+.step-h small{color:var(--muted);font-size:.82rem}
+.step-h small .time{background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:10px;margin-left:6px}
+.step-b{padding:14px 24px 22px}
+.step-b h3{color:var(--primary);font-size:1rem;margin:18px 0 6px;padding-bottom:4px;border-bottom:1px dashed var(--line)}
+.step-b h3:first-child{margin-top:6px}
+.step-b ul,.step-b ol{margin:6px 0;padding-left:24px}
+.step-b li{margin:5px 0}
+.step-b > p{margin:8px 0;color:var(--soft)}
+.step-b > p{margin:8px 0;color:var(--soft)}
 
-.hero .subtitle {
-  font-size: 16px;
-  color: var(--text-muted);
-  margin-bottom: 25px;
-}
+.substep{display:flex;gap:12px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#fafbff}
+.substep .tag{flex:0 0 26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem}
+.substep .what{flex:1}
+.substep .what b{display:block;color:var(--navy);margin-bottom:2px;font-size:.95rem}
+.substep .what span{color:var(--muted);font-size:.85rem}
 
-.native-badge-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 15px;
-  margin-top: 20px;
-}
+.mock{border:1px solid var(--line);border-radius:10px;margin:10px 0;overflow:hidden;background:#fff}
+.mock .bar{background:#e5e7eb;padding:6px 10px;display:flex;gap:6px;align-items:center;font-size:.78rem;color:var(--muted)}
+.mock .bar .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1}
+.mock .bar .dot.r{background:#ef4444}.mock .bar .dot.y{background:#eab308}.mock .bar .dot.g{background:#22c55e}
+.mock .bar .title{margin-left:8px;font-weight:600;color:#334155}
+.mock .body{padding:12px 16px;font-family:'Consolas',monospace;font-size:.85rem;color:#1f2937;background:#fff;line-height:1.6}
+.mock .body .k{color:#7c3aed;font-weight:600}
+.mock .body .v{color:#0f766e}
+.mock .body .c{color:#64748b}
+.mock .body .btn{display:inline-block;background:#4338ca;color:#fff;padding:3px 10px;border-radius:4px;font-size:.8rem;margin:2px 2px}
 
-.badge-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(207, 168, 86, 0.2);
-  border-radius: 8px;
-  padding: 12px 15px;
-  text-align: center;
-}
+.newbie{background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #f59e0b;color:#92400e;padding:4px 10px;border-radius:6px;font-size:.78rem;font-weight:600;display:inline-block;margin-bottom:6px}
 
-.badge-item .label {
-  font-size: 12px;
-  color: var(--text-muted);
-  display: block;
-  margin-bottom: 4px;
-}
+.checklist{list-style:none;padding:0;margin:10px 0}
+.checklist li{padding:8px 12px;border:1px dashed var(--line);border-radius:6px;margin:6px 0;background:#fafbff;cursor:pointer;user-select:none;display:flex;align-items:center;gap:10px;transition:all .15s}
+.checklist li::before{content:'☐';color:var(--muted);font-size:1.1rem}
+.checklist li.done{background:#f0fdf4;border-color:#86efac;border-style:solid}
+.checklist li.done::before{content:'☑';color:var(--ok)}
+.checklist li.done span{text-decoration:line-through;color:var(--muted)}
+code{background:#f1f5f9;padding:2px 6px;border-radius:5px;font-family:Consolas,monospace;font-size:.92em}
+pre{background:#0f1b33;color:#e6edf7;padding:14px;border-radius:8px;overflow:auto;font-family:Consolas,monospace;font-size:.85rem}
+pre code{background:none;color:inherit;padding:0;font-size:inherit}
 
-.badge-item .val {
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-}
+.note,.ok,.danger,.tip{border-left:4px solid;padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;font-size:.92rem}
+.note strong,.ok strong,.danger strong,.tip strong{display:block;margin-bottom:3px}
+.note{background:var(--info-bg);border-color:var(--info);color:#1e40af}
+.note strong::before{content:"ℹ️ ";font-size:.95rem}
+.ok{background:var(--ok-bg);border-color:var(--ok);color:#065f46}
+.ok strong::before{content:"✅ ";font-size:.95rem}
+.danger{background:var(--danger-bg);border-color:var(--danger);color:#7f1d1d}
+.danger strong::before{content:"⛔ ";font-size:.95rem}
+.tip{background:var(--warn-bg);border-color:var(--warn);color:#7c2d12}
+.tip strong::before{content:"💡 ";font-size:.95rem}
 
-/* Sections */
-.section {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 30px;
-  margin-bottom: 30px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.9rem;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#f8fafc}
+th{background:#f1f5f9;color:var(--navy);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.3px}
+td code{font-size:.85rem}
 
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  color: var(--primary-gold);
-  border-bottom: 1px solid rgba(207, 168, 86, 0.25);
-  padding-bottom: 12px;
-  margin-bottom: 24px;
-  font-weight: 700;
-}
+footer{padding:30px 20px;color:var(--muted);font-size:.85rem;text-align:center;background:#fff;border-top:1px solid var(--line);margin-top:40px}
+footer a{color:var(--navy-2);text-decoration:none}
 
-.section-title .icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: rgba(207, 168, 86, 0.12);
-  border-radius: 6px;
-  color: var(--secondary-gold);
-}
-
-/* 4 Pillars Table */
-.bazi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-@media (max-width: 768px) {
-  .bazi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.pillar-box {
-  background: #0f141c;
-  border: 1px solid rgba(207, 168, 86, 0.3);
-  border-radius: 8px;
-  text-align: center;
-  padding: 15px 10px;
-  transition: transform 0.2s;
-}
-
-.pillar-box:hover {
-  transform: translateY(-3px);
-  border-color: var(--secondary-gold);
-}
-
-.pillar-box.day-pillar {
-  border: 2px solid var(--primary-gold);
-  background: linear-gradient(180deg, rgba(207,168,86,0.1) 0%, #0f141c 100%);
-}
-
-.pillar-header {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--secondary-gold);
-  margin-bottom: 10px;
-  text-transform: uppercase;
-}
-
-.stem-cell, .branch-cell {
-  padding: 12px 6px;
-  margin: 6px 0;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.chinese-char {
-  font-size: 26px;
-  font-weight: 700;
-  display: block;
-}
-
-.char-desc {
-  font-size: 12px;
-  display: block;
-  margin-top: 2px;
-}
-
-.ten-god-tag {
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(207, 168, 86, 0.15);
-  color: var(--secondary-gold);
-  display: inline-block;
-  margin-bottom: 4px;
-}
-
-.hidden-stems {
-  font-size: 11px;
-  color: var(--text-muted);
-  border-top: 1px dashed rgba(255,255,255,0.1);
-  padding-top: 8px;
-  margin-top: 8px;
-  line-height: 1.4;
-}
-
-/* Colors for Elements */
-.elem-fire { color: var(--fire-color); }
-.elem-earth { color: var(--earth-color); }
-.elem-metal { color: var(--metal-color); }
-.elem-water { color: var(--water-color); }
-.elem-wood { color: var(--wood-color); }
-
-/* Analysis Card Grid */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.info-card {
-  background: #0f141c;
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.info-card h4 {
-  color: var(--secondary-gold);
-  font-size: 16px;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Star tags */
-.star-tag {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  margin: 3px 4px 3px 0;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-.star-auspicious {
-  border-color: rgba(46, 204, 113, 0.4);
-  color: #2ecc71;
-  background: rgba(46, 204, 113, 0.08);
-}
-
-.star-warning {
-  border-color: rgba(231, 76, 60, 0.4);
-  color: #e74c3c;
-  background: rgba(231, 76, 60, 0.08);
-}
-
-.star-neutral {
-  border-color: rgba(52, 152, 219, 0.4);
-  color: #3498db;
-  background: rgba(52, 152, 219, 0.08);
-}
-
-/* Timeline Month Cards */
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  position: relative;
-  margin-top: 15px;
-}
-
-.timeline::before {
-  content: '';
-  position: absolute;
-  top: 10px;
-  bottom: 10px;
-  left: 20px;
-  width: 2px;
-  background: rgba(207, 168, 86, 0.3);
-}
-
-@media (max-width: 600px) {
-  .timeline::before { left: 10px; }
-}
-
-.month-item {
-  position: relative;
-  padding-left: 50px;
-}
-
-@media (max-width: 600px) {
-  .month-item { padding-left: 30px; }
-}
-
-.month-dot {
-  position: absolute;
-  left: 12px;
-  top: 18px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--dark-bg);
-  border: 3px solid var(--primary-gold);
-}
-
-@media (max-width: 600px) {
-  .month-dot { left: 2px; }
-}
-
-.month-content {
-  background: #0f141c;
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 20px;
-  border-left: 3px solid var(--primary-gold);
-}
-
-.month-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.month-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--secondary-gold);
-}
-
-.month-gz {
-  font-size: 13px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(207, 168, 86, 0.15);
-  color: #fff;
-}
-
-.month-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.sub-box {
-  background: rgba(255,255,255,0.02);
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.sub-box h5 {
-  font-size: 13px;
-  color: var(--primary-gold);
-  margin-bottom: 4px;
-}
-
-/* Strategic Actions */
-.action-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.action-card {
-  background: #0f141c;
-  border-radius: 8px;
-  padding: 22px;
-  border-top: 3px solid var(--primary-gold);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.action-card.career { border-top-color: #3498db; }
-.action-card.wealth { border-top-color: #2ecc71; }
-.action-card.health { border-top-color: #e74c3c; }
-.action-card.fengshui { border-top-color: #e5c158; }
-
-.action-card h4 {
-  font-size: 17px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.action-card ul {
-  list-style: none;
-  padding: 0;
-}
-
-.action-card li {
-  position: relative;
-  padding-left: 18px;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #c9d1d9;
-}
-
-.action-card li::before {
-  content: '▸';
-  position: absolute;
-  left: 0;
-  color: var(--primary-gold);
-}
-
-/* Tables */
-.custom-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 15px 0;
-  font-size: 14px;
-}
-
-.custom-table th, .custom-table td {
-  padding: 10px 14px;
-  border: 1px solid var(--card-border);
-  text-align: left;
-}
-
-.custom-table th {
-  background: rgba(207, 168, 86, 0.12);
-  color: var(--secondary-gold);
-  font-weight: 600;
-}
-
-.custom-table tr:nth-child(even) {
-  background: rgba(255,255,255,0.02);
-}
-
-.highlight-box {
-  background: linear-gradient(135deg, rgba(207,168,86,0.1) 0%, rgba(139,30,30,0.15) 100%);
-  border: 1px solid var(--primary-gold);
-  border-radius: 8px;
-  padding: 18px 22px;
-  margin: 20px 0;
-}
-
-.footer {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 13px;
-  padding-top: 30px;
-  border-top: 1px solid var(--card-border);
+@media(max-width:760px){
+  body{font-size:14px}
+  header{padding:36px 20px 70px}
+  header h1{font-size:1.4rem}
+  .toc ol{columns:1}
+  .step-h h2{font-size:1rem}
+  .num{flex:0 0 38px;height:38px;font-size:.95rem}
+  .step-b{padding:12px 18px 18px}
+  .substep{flex-direction:column;gap:6px}
+  .progress label{display:none}
 }
 </style>
 </head>
 <body>
-
-<div class="container">
-
-  <!-- Hero Header -->
-  <header class="hero">
-    <h1>คัมภีร์วิเคราะห์ดวงชะตาจีนขั้นสูง</h1>
-    <div class="subtitle">ระบบปาจื่อ (BaZi 4 Pillars) • ฉีเหมินตุ้นเจี่ย (Qi Men Dun Jia) • โป๊ยข่วย 8 ทิศ & ซวนคงต้ากว้า 64 กว้า</div>
-    
-    <div class="native-badge-grid">
-      <div class="badge-item">
-        <span class="label">เพศ / วันเดือนปีเกิด</span>
-        <span class="val">หญิง / 26 ก.ย. 2519 (1976)</span>
-      </div>
-      <div class="badge-item">
-        <span class="label">เวลาเกิด / ปรับเวลาสุริยคติจริง</span>
-        <span class="val">01.44 น. (เวลาแท้ 01.36 น. ยามฉิ่ว 丑)</span>
-      </div>
-      <div class="badge-item">
-        <span class="label">สถานที่เกิด</span>
-        <span class="val">อ.โกสุมพิสัย จ.มหาสารคาม</span>
-      </div>
-      <div class="badge-item">
-        <span class="label">ดิถีประจำตัว (Day Master)</span>
-        <span class="val elem-metal">辛 ซินทองหยิน (เพชร/อัญมณี)</span>
-      </div>
-      <div class="badge-item">
-        <span class="label">รหัสกว้าประจำตัว (Ming Gua)</span>
-        <span class="val elem-fire">กว้า 9 หลี่ (ธาตุไฟ - ตะวันออก)</span>
-      </div>
-      <div class="badge-item">
-        <span class="label">ช่วงวัยจรใหญ่ (大运 Da Yun)</span>
-        <span class="val elem-water">壬辰 (ยิ้มซิ้ง / น้ำมะโรง อายุ 46-55)</span>
-      </div>
+<header>
+  <div class="wrap">
+    <span class="badge">📘 Deployment Guide · v1.1</span>
+    <h1>🚀 คู่มือคัดลอกระบบ CE F.A.I.R. ไปยังอาคาร/ห้องปฏิบัติการอื่น</h1>
+    <p>แบบจับมือทำทีละขั้นตอน (step-by-step) สำหรับผู้ดูแลที่ต้องการนำระบบแม่แบบไปติดตั้งที่อาคาร/สาขาใหม่ด้วยตนเอง — แม้ไม่เคยใช้ Apps Script มาก่อนก็ทำตามได้</p>
+    <div class="meta">
+      <span>🕒 รวม ~1.5–2 ชม.</span>
+      <span>📑 16 ขั้นตอน</span>
+      <span>👤 ผู้ดูแลระบบ/IT</span>
+      <span>🌐 Apps Script + Google Sheet</span>
     </div>
-  </header>
-
-  <!-- Section 1: Natal BaZi Chart -->
-  <section class="section">
-    <h2 class="section-title"><span class="icon">📜</span> 1. แผนภูมิดวงชะตากำเนิด 4 เสา (BaZi Natal Chart & 10 Profiles)</h2>
-    
-    <div class="bazi-grid">
-      <!-- Hour Pillar -->
-      <div class="pillar-box">
-        <div class="pillar-header">เสายาม (Hour)</div>
-        <div class="stem-cell">
-          <span class="ten-god-tag">เพียเอี้ยง (เอี่ยว)</span>
-          <span class="chinese-char elem-earth">己</span>
-          <span class="char-desc">จี่ (ดินหยิน)</span>
-        </div>
-        <div class="branch-cell">
-          <span class="chinese-char elem-earth">丑</span>
-          <span class="char-desc">ฉิ่ว (ฉลู / ดินเปียก)</span>
-        </div>
-        <div class="hidden-stems">
-          <strong>ราศีแฝง:</strong><br>
-          己 ดินหยิน (เพียเอี้ยง)<br>
-          癸 น้ำหยิน (เจียะซิ้ง)<br>
-          辛 ทองหยิน (ปีเกียง)
-        </div>
-      </div>
-
-      <!-- Day Pillar -->
-      <div class="pillar-box day-pillar">
-        <div class="pillar-header">เสาวัน (Day - ตัวตน)</div>
-        <div class="stem-cell">
-          <span class="ten-god-tag">ดิถีตัวตน (Day Master)</span>
-          <span class="chinese-char elem-metal">辛</span>
-          <span class="char-desc">ซิน (ทองหยิน / อัญมณี)</span>
-        </div>
-        <div class="branch-cell">
-          <span class="chinese-char elem-fire">巳</span>
-          <span class="char-desc">ซียะ (มะเส็ง / ไฟหยาง)</span>
-        </div>
-        <div class="hidden-stems">
-          <strong>ราศีแฝง (วังคู่ครอง):</strong><br>
-          丙 ไฟหยาง (เจิ้งกัว)<br>
-          戊 ดินหยาง (เจิ้งอิ้น)<br>
-          庚 ทองหยาง (เกียบใช้)
-        </div>
-      </div>
-
-      <!-- Month Pillar -->
-      <div class="pillar-box">
-        <div class="pillar-header">เสาเดือน (Month - อาชีพ)</div>
-        <div class="stem-cell">
-          <span class="ten-god-tag">ชีซั่วะ (7 อสูร)</span>
-          <span class="chinese-char elem-fire">丁</span>
-          <span class="char-desc">เต็ง (ไฟหยิน)</span>
-        </div>
-        <div class="branch-cell">
-          <span class="chinese-char elem-metal">酉</span>
-          <span class="char-desc">อิ้ว (ระกา / ทองบริสุทธิ์)</span>
-        </div>
-        <div class="hidden-stems">
-          <strong>ราศีแฝง (ลิ่วซิ้ง):</strong><br>
-          辛 ทองหยิน (ปีเกียง)<br>
-          <span style="color:var(--primary-gold);">★ ลกซิ้ง (ดาวลาภยศกำเนิด)</span>
-        </div>
-      </div>
-
-      <!-- Year Pillar -->
-      <div class="pillar-box">
-        <div class="pillar-header">เสาปี (Year - สังคม/บรรพชน)</div>
-        <div class="stem-cell">
-          <span class="ten-god-tag">เจิ้งกัว (ขุนนางตรง)</span>
-          <span class="chinese-char elem-fire">丙</span>
-          <span class="char-desc">เปี้ย (ไฟหยาง)</span>
-        </div>
-        <div class="branch-cell">
-          <span class="chinese-char elem-earth">辰</span>
-          <span class="char-desc">ซิ้ง (มะโรง / ดินเปียก)</span>
-        </div>
-        <div class="hidden-stems">
-          <strong>ราศีแฝง:</strong><br>
-          戊 ดินหยาง (เจิ้งอิ้น)<br>
-          乙 ไม้หยิน (เพียใช้)<br>
-          癸 น้ำหยิน (เจียะซิ้ง)
-        </div>
-      </div>
-    </div>
-
-    <!-- Special Structural Combinations -->
-    <div class="highlight-box">
-      <h3 style="color: var(--secondary-gold); font-size: 16px; margin-bottom: 8px;">👑 โครงสร้างดวงชะตาพิเศษระดับสูง (Special Formations)</h3>
-      <ul style="padding-left: 20px; line-height: 1.8;">
-        <li><strong>ไตรภาคีธาตุทองสมบูรณ์แบบ (巳 - 酉 - 丑 三合金局 Si-You-Chou Metal Frame):</strong> ในดวงมีราศีล่าง 巳 (วัน) + 酉 (เดือน) + 丑 (ยาม) ครบ 3 ตัว ก่อตัวเป็นมหาพลังธาตุทองบริสุทธิ์ ส่งผลให้ดิถี 辛 (ทอง) แข็งแกร่งทรงพลังอย่างยิ่ง (身旺 / 建禄格 โครงสร้างเจี้ยนลู่ขุนนางทรงพลัง) มีความเด็ดเดี่ยว สง่างาม เจ้าระเบียบ จิตใจหนักแน่น มีความเป็นผู้นำสูงส่ง</li>
-        <li><strong>คู่ภาคีฟ้า 丙-辛 รวมธาตุน้ำ (丙辛合水 Bing-Xin He):</strong> ราศีบนปี 丙 (เจิ้งกัว - ขุนนาง/เกียรติยศ) ผูกพันภาคีเข้าสู่ดิถีตัวตน 辛 โดยตรง จอยถึงผู้ใหญ่ บุคคลระดับสูง หรือคู่ครองให้การยกย่อง สนับสนุน มักมีชื่อเสียงและสถานะทางสังคมที่โดดเด่น</li>
-        <li><strong>เต็งไฟนั่งทองบริสุทธิ์ (丁坐酉 杀坐贵):</strong> เสาเดือนมี 丁 (ดาวชีซั่วะ / การบริหารกลยุทธ์ การตัดสินใจเฉียบขาด) นั่งอยู่บน 酉 (ระกาทอง / เทพอุปถัมภ์และดาวลก) เป็นคนกล้าได้กล้าเสีย มีเซ้นส์ทางธุรกิจและการบริหารคนยอดเยี่ยม</li>
-        <li><strong>ปฏิสนธิกาล (Tai Yuan 胎元):</strong> 戊子 (โบ่วจื้อ - ดินบนน้ำชวด) คลังปัญญาและพลังหยินหยางค้ำจุนชีวิต</li>
-      </ul>
-    </div>
-
-    <!-- 10 Profiles Proportions & Element Balance -->
-    <div class="cards-grid">
-      <div class="info-card">
-        <h4>⚖️ สัดส่วนโครงสร้าง 10 เทพ (10 Profiles Proportions)</h4>
-        <table class="custom-table">
-          <tr><th>เทพประจำตัว / โครงสร้าง</th><th>สัดส่วน (%)</th><th>บทบาทในดวงชะตา</th></tr>
-          <tr><td><strong>Friend / Companion (比肩 ปีเกียง)</strong></td><td>45%</td><td>ความมั่นใจสูง พึ่งพาตนเอง มีเครือข่ายมิตรสหาย</td></tr>
-          <tr><td><strong>Direct Officer (正官 เจิ้งกัว)</strong></td><td>18%</td><td>เกียรติยศ ระเบียบวินัย ความถูกต้องทางกฎจอย</td></tr>
-          <tr><td><strong>Resource (印星 เอี่ยว/อิ้น ดินเปียก)</strong></td><td>15%</td><td>การศึกษา ความรู้ลึกซึ้ง ไหวพริบ ความกตัญญู</td></tr>
-          <tr><td><strong>Seven Killings (七杀 ชีซั่วะ)</strong></td><td>12%</td><td>ความกล้าตัดสินใจ บารมี อำนาจ การแก้ปัญหาเฉพาะหน้า</td></tr>
-          <tr><td><strong>Output & Wealth (食伤/财星 น้ำ-ไม้)</strong></td><td>10%</td><td>สติปัญญา การลงทุน ไอเดียสร้างสรรค์ (รอการกระตุ้น)</td></tr>
-        </table>
-      </div>
-
-      <div class="info-card">
-        <h4>🎯 เทพเกื้อหนุน & เทพให้โทษ (Yong Shen / Xi Shen)</h4>
-        <p>เนื่องจากดวงเป็น <strong>ทองแข็งแกร่งสูงสุด (身旺极金)</strong> ธาตุที่ต้องการที่สุดคือ:</p>
-        <ul style="padding-left: 18px; margin-top: 8px;">
-          <li><strong class="elem-water">ธาตุน้ำ (食伤 เทพถ่ายเท/ปัญญา):</strong> เคล็ดวิชา <em>"辛金喜壬水淘洗"</em> (ทองซินต้องการน้ำยิ้มชำระล้างให้เป็นประกายเจิดจรัส) น้ำคือการระบายพลัง แสดงความสามารถ สร้างเงินทอง</li>
-          <li><strong class="elem-wood">ธาตุไม้ (财星 เทพโชคลาภ/การเงิน):</strong> เป็นเป้าจอยที่ทำให้พลังงานทองแปรเปลี่ยนเป็นความมั่งคั่งที่จับต้องได้</li>
-          <li><strong class="elem-fire">ธาตุไฟ (官杀 เทพชื่อเสียง/ตำแหน่ง):</strong> ควบคุมขัดเกลาให้ทองมีรูปทรงสวยงาม แต่ต้องไม่ร้อนจนแผดเผาน้ำ</li>
-          <li><span class="elem-metal" style="text-decoration: line-through;">ธาตุทองหนาแน่น</span> และ <span class="elem-earth" style="text-decoration: line-through;">ธาตุดินแห้ง</span>: ควรหลีกเลี่ยงการสะสมดินหนาเพราะจะฝังกลบประกายเพชร</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 2: Symbolic Stars & General Stars -->
-  <section class="section">
-    <h2 class="section-title"><span class="icon">✨</span> 2. ดวงดาวมงคล & ดาวสั่วะในดวงชะตา (Symbolic & General Stars)</h2>
-    
-    <div class="cards-grid">
-      <div class="info-card">
-        <h4>🌟 ดาวมงคลประจำดวงชะตา (Auspicious Stars)</h4>
-        <div>
-          <span class="star-tag star-auspicious">★ ลกซิ้ง (禄神 Lu Star - เสาเดือน 酉)</span> : ดาวขุมทรัพย์ประจำตัว ดวงไม่อดอยาก มีทรัพย์สินมั่นคง<br>
-          <span class="star-tag star-auspicious">★ เจียงซิ้ง (将星 General Star - 酉)</span> : ดาวแม่ทัพ ผู้นำองค์กร มีอำนาจการสั่งการ คุมบริวารได้ดี<br>
-          <span class="star-tag star-auspicious">★ ฮวาระกา (华盖 Elegant Star - เสายาม 丑 & เสาปี 辰)</span> : สติปัญญาสูงส่ง ลึกซึ้งในปรัชญา โหราศาสตร์ และศิลปะชั้นสูง<br>
-          <span class="star-tag star-auspicious">★ เทพอุปถัมภ์ฟ้า (天乙贵人 Tian Yi Gui Ren)</span> : สถิตในวัยจร/ปีจร (午 และ 寅) เมื่อเข้าตาจนจะมีคนยื่นมือช่วยเสมอ
-        </div>
-      </div>
-
-      <div class="info-card">
-        <h4>⚠️ ดาวที่ต้องระวังและควบคุม (Special Challenges)</h4>
-        <div>
-          <span class="star-tag star-warning">▲ กั่วซิ่ว (寡宿 Solitary Star - 丑)</span> : มีช่วงเวลาที่ชอบอยู่สันโดษ คิดมากในเรื่องลึกซึ้ง โดดเดี่ยวทางความคิด<br>
-          <span class="star-tag star-neutral">▲ ถ่อฮวย (桃花 Peach Blossom Star - 午 ในปี 2569)</span> : เสน่ห์ดึงดูด ผู้คนเข้าหามาก ต้องระวังเรื่องความสัมพันธ์ซับซ้อน<br>
-          <span class="star-tag star-warning">▲ ลิ่วฮาย / พั่ว (丑午害 & 午酉破)</span> : เกิดความระหองระแหงกับบริวาร หรือความแปรปรวนในระบบการจัดการภายใน
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 3: In-depth 2026 Bing Wu Analysis -->
-  <section class="section">
-    <h2 class="section-title"><span class="icon">🔥</span> 3. ภาพรวมปี พ.ศ. 2569 (ปีเปี้ยโง่ว 丙午 - ม้าเพลิง / Bing Wu)</h2>
-    
-    <div class="highlight-box">
-      <p style="font-size: 15.5px;">
-        ปี พ.ศ. 2569 คือปี <strong>丙午 (เปี้ยโง่ว - ม้าไฟหยางบริสุทธิ์)</strong> ซึ่งตรงกับช่วงวัยจรใหญ่ <strong>壬辰 (ยิ้มซิ้ง - น้ำบนมะโรง อายุ 46-55)</strong> พอดี! 
-        เกิดปรากฏการณ์ <strong>"丙壬相照" (สุริยันส่องประกายเหนือมหาสมุทร)</strong> ส่งผลให้เป็นปีแห่ง <strong>การเปิดตัว การมีชื่อเสียง การได้รับการยอมรับในวงกว้าง และอำนาจบารมีพุ่งทะยานสูงสุด</strong> 
-        แต่เนื่องจากราศีบน 丙 (ไฟเจิ้งกัว) มาภาคีซ้ำกับ 辛 (ดิถี) และปะทะเบาๆ กับ 壬 (ดาวชางกวนในวัยจร) จึงต้องระวังเรื่องการแสดงออกทางคำพูด สัญญาเอกสาร และการรับภาระงานที่หนักเกินตัว
-      </p>
-    </div>
-
-    <div class="cards-grid">
-      <div class="info-card">
-        <h4>🏛️ ปฏิสัมพันธ์กับเสาดวง (Pillar Interactions)</h4>
-        <ul style="padding-left: 18px; line-height: 1.7;">
-          <li><strong>ราศีบน 丙 (ไฟหยาง):</strong> นำพาตำแหน่ง หน้าที่เกียรติยศ การติดต่อกับหน่วยงานรัฐ หรือผู้มีอำนาจเข้ามา</li>
-          <li><strong>ราศีล่าง 午 (ม้าไฟ):</strong> 
-            <br>• เป็น <em>เทพอุปถัมภ์ (天乙贵人)</em> ให้แก่ดิถี 辛
-            <br>• ทำปฏิกิริยา <em>午酉破 (พั่วกับเสาเดือน)</em>: การปรับเปลี่ยนโครงสร้างงานหรือรูปแบบธุรกิจเดิม
-            <br>• ทำปฏิกิริยา <em>丑午害 (ฮายกับเสายาม)</em>: ต้องรอบคอบเรื่องการลงทุนระยะสั้น และใส่ใจสุขภาพของบริวาร/ลูกน้อง
-          </li>
-        </ul>
-      </div>
-
-      <div class="info-card">
-        <h4>⚡ ฉีเหมินตุ้นเจี่ย & ซวนคงต้ากว้า ประจำปี 2569</h4>
-        <ul style="padding-left: 18px; line-height: 1.7;">
-          <li><strong>รหัสกว้า 9 หลี่ (離卦 - ทิศใต้):</strong> ประจำทิศธาตุไฟ ปี 2569 พลังไฟเข้าสู่วังหลี่เต็มเปี่ยม ส่งเสริมพลังอำนาจและเสน่ห์</li>
-          <li><strong>ดาวบินยุค 9 (Period 9 Fire):</strong> พลังงานเกื้อหนุนสายงานความรู้ ปัญญา ที่ปรึกษา โหราศาสตร์ พลังงาน และออนไลน์</li>
-          <li><strong>ประตูฉีเหมินสำคัญ:</strong> ประตูเปิด (開門 Open Door) อยู่ทางทิศตะวันตกเฉียงเหนือ เจอะแก่การเจรจาการงาน และประตูเกิด (生門 Life Door) ทางทิศตะวันออกเฉียงเหนือ เจอะแก่การเรียกกระแสเงินสด</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 4: Detailed Breakdown: Sep 2026 - Feb 2027 -->
-  <section class="section">
-    <h2 class="section-title"><span class="icon">📅</span> 4. วิเคราะห์เจาะลึกรายเดือน: กันยายน 2569 – กุมภาพันธ์ 2570</h2>
-    
-    <div class="timeline">
-      
-      <!-- Month 1: Sep 2026 -->
-      <div class="month-item">
-        <div class="month-dot"></div>
-        <div class="month-content">
-          <div class="month-header">
-            <div class="month-title">กันยายน 2569 (7 ก.ย. – 7 ต.ค. 2569) : เดือนเต็งอิ้ว 丁酉 (ระกาไฟหยิน)</div>
-            <div class="month-gz">丁酉 • ซ้ำเสาเดือนเกิด (伏吟 Fu Yin)</div>
-          </div>
-          <p>เป็นเดือนที่พลังของดาว <strong>ชีซั่วะ (丁)</strong> และ <strong>ดาวลกซิ้ง (酉)</strong> ทรงพลังเป็น 2 เท่าเนื่องจากทับกับเสาเดือนเกิดเดิม การงานจะมีความท้าทายสูง มีแรงกดดันจากภายนอก แต่คุณจะมีพลังในการสั่งการและควบคุมสถานการณ์ได้อย่างเบ็ดเสร็จ</p>
-          <div class="month-grid">
-            <div class="sub-box">
-              <h5>💼 การงาน & ธุรกิจ</h5>
-              <p>เกิดการตัดสินใจครั้งใหญ่ มีโปรเจกต์ด่วนที่ต้องใช้ภาวะผู้นำ ห้ามลังเล บริวารจะพึ่งพาคุณเป็นหลัก</p>
-            </div>
-            <div class="sub-box">
-              <h5>💰 การเงิน & โชคลาภ</h5>
-              <p>มีรายได้เข้าก้อนใหญ่ตามกำลังงาน แต่อาจมีรายจ่ายเพื่อขยายงานหรือดูแลบริวาร</p>
-            </div>
-            <div class="sub-box">
-              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
-              <p>ระวังอาการปวดเมื่อยไหล่ คอ บ่า ระบบทางเดินหายใจ และความเครียดสะสมจากการแบกรับงาน</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Month 2: Oct 2026 -->
-      <div class="month-item">
-        <div class="month-dot"></div>
-        <div class="month-content">
-          <div class="month-header">
-            <div class="month-title">ตุลาคม 2569 (8 ต.ค. – 6 พ.ย. 2569) : เดือนโบ่วสุก 戊戌 (จอดินแห้ง)</div>
-            <div class="month-gz">戊戌 • ชงคลังมะโรง (辰戌相冲 Chen-Xu Clash)</div>
-          </div>
-          <p>เกิดปรากฏการณ์ <strong>辰戌冲 (ชงระหว่างมะโรงในดวงกับจอในเดือน)</strong> ซึ่งเป็นการปะทะของธาตุดิน (คลังสมบัติและอสังหาริมทรัพย์) มีเกณฑ์การเคลื่อนไหวของสินทรัพย์ การซ่อมแซมบ้าน ปรับปรุงสถานที่ทำงาน หรือการจัดการเอกสารมรดก/ที่ดิน</p>
-          <div class="month-grid">
-            <div class="sub-box">
-              <h5>💼 การงาน & ธุรกิจ</h5>
-              <p>การปรับเปลี่ยนโครงสร้างออฟฟิศ ย้ายโต๊ะทำงาน หรือเจรจาเรื่องสัญญาอสังหาริมทรัพย์/สัญญาเช่า</p>
-            </div>
-            <div class="sub-box">
-              <h5>💰 การเงิน & โชคลาภ</h5>
-              <p><strong>"ชงคลังดินเปิดขุมทรัพย์"</strong> มีเงินก้อนเข้าจากการขายสินทรัพย์ หรือได้กำไรจากการลงทุนระยะยาว</p>
-            </div>
-            <div class="sub-box">
-              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
-              <p>ระบบทางเดินอาหาร กรดไหลย้อน กระเพาะ ม้าม และระวังอุบัติเหตุจากการสะดุดหกล้ม</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Month 3: Nov 2026 -->
-      <div class="month-item">
-        <div class="month-dot"></div>
-        <div class="month-content">
-          <div class="month-header">
-            <div class="month-title">พฤศจิกายน 2569 (7 พ.ย. – 6 ธ.ค. 2569) : เดือนจี่ไห 己亥 (กุนดินหยิน)</div>
-            <div class="month-gz">己亥 • ชงวังคู่ครอง/ตัวตน (巳亥相冲 Si-Hai Clash)</div>
-          </div>
-          <p>ราศีล่าง 亥 (กุน/น้ำ) เข้ามาปะทะกับ 巳 (มะเส็ง/ไฟ) ที่เสาวันเกิด (วังคู่ครองและสุขภาพ) ถือเป็นเดือนแห่ง <strong>การเดินทางไกล การเปลี่ยนแปลงทางอารมณ์ และความสัมพันธ์</strong></p>
-          <div class="month-grid">
-            <div class="sub-box">
-              <h5>💼 การงาน & ธุรกิจ</h5>
-              <p>ต้องเดินทางบ่อย ไม่อยู่กับที่ การเจรจากับต่างถิ่นต่างแดนหรือออนไลน์จะให้ผลลัพธ์ดีเลิศ</p>
-            </div>
-            <div class="sub-box">
-              <h5>💰 การเงิน & โชคลาภ</h5>
-              <p>เงินหมุนเวียนเร็ว ไหลเข้าและออกตามการเดินทาง ควรงดการให้ผู้อื่นหยิบยืมในเดือนนี้</p>
-            </div>
-            <div class="sub-box">
-              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
-              <p>ความใจร้อนกับคู่ครอง/คนใกล้ชิด, ระวังระบบหัวใจ ความดัน สายตา และระบบสืบพันธุ์สตรี</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Month 4: Dec 2026 -->
-      <div class="month-item">
-        <div class="month-dot"></div>
-        <div class="month-content">
-          <div class="month-header">
-            <div class="month-title">ธันวาคม 2569 (7 ธ.ค. 2569 – 4 ม.ค. 2570) : เดือนแกจื้อ 庚子 (ชวดทองหยาง)</div>
-            <div class="month-gz">庚子 • ชงปีจร (子午相冲 Zi-Wu Clash)</div>
-          </div>
-          <p>ราศีล่าง 子 (น้ำชวด) ปะทะกับ 午 (ม้าไฟแห่งปี 2569) เป็นศึกระหว่างน้ำกับไฟ (Water-Fire Battle) ส่งผลให้เกิดความคึกคักอย่างยิ่ง ความคิดสร้างสรรค์พุ่งพล่าน แต่ต้องระวังอารมณ์ขึ้นลงรวดเร็ว</p>
-          <div class="month-grid">
-            <div class="sub-box">
-              <h5>💼 การงาน & ธุรกิจ</h5>
-              <p>ไอเดียใหม่ๆ บรรเจิด ได้รับโอกาสทางการตลาดใหม่ มีการแข่งขันสูงแต่คุณมีไหวพริบเหนือกว่า</p>
-            </div>
-            <div class="sub-box">
-              <h5>💰 การเงิน & โชคลาภ</h5>
-              <p>โชคลาภลอยเด่น มีโอกาสได้เงินพิเศษหรือของขวัญมีค่าจากผู้ใหญ่</p>
-            </div>
-            <div class="sub-box">
-              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
-              <p>นอนไม่หลับ อารมณ์แปรปรวน ระวังระบบหลอดเลือดและสายตา ควรผ่อนคลายด้วยการนั่งสมาธิ</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Month 5: Jan 2027 -->
-      <div class="month-item">
-        <div class="month-dot"></div>
-        <div class="month-content">
-          <div class="month-header">
-            <div class="month-title">มกราคม 2570 (5 ม.ค. – 3 ก.พ. 2570) : เดือนซินฉิ่ว 辛丑 (ฉลูทองหยิน)</div>
-            <div class="month-gz">辛丑 • ซ้ำเสายาม & ไตรภาคีทองรอบใหม่ (Si-You-Chou)</div>
-          </div>
-          <p>ดิถีตัวตน 辛 ปรากฏบนฟ้า และ 丑 ดินเปียกเข้ามารวมกับ 巳 และ 酉 ในดวง ครบไตรภาคีทองเต็มกำลัง เป็นเดือนแห่งการสรุปยอดผลงาน การรวมกลุ่มพันธมิตร และการเก็บเกี่ยวผลกำไรปลายปี</p>
-          <div class="month-grid">
-            <div class="sub-box">
-              <h5>💼 การงาน & ธุรกิจ</h5>
-              <p>ปิดดีลใหญ่ การเซ็นสัญญาความร่วมมือ พันธมิตรธุรกิจและเพื่อนร่วมงานให้การสนับสนุนเต็มที่</p>
-            </div>
-            <div class="sub-box">
-              <h5>💰 การเงิน & โชคลาภ</h5>
-              <p>การเงินมีเสถียรภาพสูงมาก เงินก้อนปลายปี โบนัส หรือปันผลจากการลงทุนงอกเงยชัดเจน</p>
-            </div>
-            <div class="sub-box">
-              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
-              <p>ระวังความดื้อรั้นหรือยึดมั่นถือมั่นเกินไป และดูแลเรื่องระบบย่อยอาหาร/ไขข้อ</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Month 6: Feb 2027 -->
-      <div class="month-item">
-        <div class="month-dot"></div>
-        <div class="month-content">
-          <div class="month-header">
-            <div class="month-title">กุมภาพันธ์ 2570 (4 ก.พ. – 4 มี.ค. 2570) : เดือนยิ้มเอี๊ยง 壬寅 (ขาลน้ำหยาง)</div>
-            <div class="month-gz">壬寅 • ก้าวเข้าสู่ปีเต็งบี่ 丁未 (ปีแพะ 2570)</div>
-          </div>
-          <p>เข้าสู่วสันตฤดู (วันสารทหลิบชุน - 立春) เปลี่ยนผ่านสู่ปี <strong>丁未 (เต็งบี่)</strong> พลังงานน้ำ 壬 ชำระล้างทอง 辛 ร่วมกับ 寅 (ขาลไม้/เทพอุปถัมภ์) นำพากระแสการเงินใหม่ๆ และการเริ่มต้นธุรกิจรอบใหม่ที่สดใส</p>
-          <div class="month-grid">
-            <div class="sub-box">
-              <h5>💼 การงาน & ธุรกิจ</h5>
-              <p>การเปิดตัวผลิตภัณฑ์ใหม่ เริ่มต้นโครงการใหม่ ได้รับมอบจอยโปรเจกต์ระดับยุทธศาสตร์</p>
-            </div>
-            <div class="sub-box">
-              <h5>💰 การเงิน & โชคลาภ</h5>
-              <p>ดาวโชคลาภ (财星) เริ่มทำงานอย่างเต็มตัว กระแสเงินสดไหลเวียนคล่องตัวมากยิ่งขึ้น</p>
-            </div>
-            <div class="sub-box">
-              <h5>⚠️ ข้อควรระวัง & สุขภาพ</h5>
-              <p>สุขภาพสดชื่นกระปรี้กระเปร่า ระวังเพียงอาการภูมิแพ้อากาศและการพักผ่อนไม่เพียงพอ</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Section 5: Strategic Advice, Wealth, Career & Remedies -->
-  <section class="section">
-    <h2 class="section-title"><span class="icon">🛡️</span> 5. ข้อเสนอแนะเชิงยุทธศาสตร์ & เคล็ดลับการเสริมดวง (Remedies & Mastery)</h2>
-    
-    <div class="action-grid">
-      
-      <!-- Career -->
-      <div class="action-card career">
-        <h4>💼 ยุทธศาสตร์ด้านการงาน</h4>
-        <ul>
-          <li><strong>ตำแหน่งผู้นำและการบริหาร:</strong> ด้วยโครงสร้าง <em>建禄格 + 七杀</em> ดวงชะตานี้เจอะกับการเป็นผู้บริหาร ที่ปรึกษาระดับสูง หรือเจ้าของกิจการที่ต้องใช้อำนาจตัดสินใจ</li>
-          <li><strong>การใช้พลังน้ำ (การสื่อสาร/กลยุทธ์):</strong> ในช่วงวัยจร 壬辰 ควรเน้นงานด้านการถ่ายทอด การสร้างแบรนด์ การตลาดดิจิทัล และการให้คำปรึกษา</li>
-          <li><strong>ระวังข้อสัญญาในเดือน ต.ค. & พ.ย. 69:</strong> ตรวจสอบเอกสารทางกฎจอยอย่างรอบคอบ หลีกเลี่ยงการใช้อารมณ์ในการเจรจา</li>
-        </ul>
-      </div>
-
-      <!-- Wealth -->
-      <div class="action-card wealth">
-        <h4>💰 ยุทธศาสตร์ด้านการเงิน</h4>
-        <ul>
-          <li><strong>แปลงกระแสเงินสดเป็นสินทรัพย์:</strong> ดวงธาตุทองแข็งแกร่ง ควรแปลงผลกำไรเป็น <em>อสังหาริมทรัพย์, ที่ดิน หรือทองคำแท่ง</em> เพื่อล็อคความมั่งคั่ง</li>
-          <li><strong>โอกาสเปิดขุมทรัพย์ (ต.ค. 69 & ม.ค. 70):</strong> เป็นช่วงจังหวะที่ดีที่สุดในการขายทำกำไรสินทรัพย์ หรือเจรจาปรับเพิ่มผลตอบแทน</li>
-          <li><strong>หลีกเลี่ยงการเก็งกำไรความเสี่ยงสูงจัดในเดือน ธ.ค. 69:</strong> ช่วง 子午冲 กระแสเงินผันผวนสูง ให้เน้นความแน่นอนเป็นหลัก</li>
-        </ul>
-      </div>
-
-      <!-- Health & Relationship -->
-      <div class="action-card health">
-        <h4>🌿 สุขภาพ & ความสัมพันธ์</h4>
-        <ul>
-          <li><strong>อวัยวะที่ต้องดูแล:</strong> ปอด ทางเดินหายใจ ผิวหนัง (ธาตุทอง), ม้าม กระเพาะอาหาร (ธาตุดิน), และระบบไหลเวียนโลหิต/หัวใจ (ธาตุไฟ)</li>
-          <li><strong>การปรับสมดุลธาตุ:</strong> ดื่มน้ำสะอาดให้เพียงพอ ฝึกโยคะหรือสมาธิเพื่อระบายความร้อนในร่างกาย (金水相生)</li>
-          <li><strong>ความสัมพันธ์คู่ครอง:</strong> เสาวัน 辛巳 ในเดือน พ.ย. 69 (巳亥冲) ควรชวนคู่ครองเดินทางท่องเที่ยวเปลี่ยนบรรยากาศ เพื่อแปลงการปะทะเป็นการเดินทางร่วมกัน</li>
-        </ul>
-      </div>
-
-      <!-- Feng Shui & QMDJ Remedies -->
-      <div class="action-card fengshui">
-        <h4>🔮 เคล็ดฮวงจุ้ย & ฉีเหมินตุ้นเจี่ย</h4>
-        <ul>
-          <li><strong>ทิศมงคลประจำตัว (รหัสกว้า 9 หลี่):</strong>
-            <br>• <em>ทิศตะวันออก (生氣 แดนกำเนิด):</em> ตั้งโต๊ะทำงานหันหน้าทิศนี้ เสริมพลังอำนาจและความก้าวหน้า
-            <br>• <em>ทิศเหนือ (延年 ยืนยาว):</em> เสริมความสัมพันธ์และความราบรื่นในครอบครัว
-          </li>
-          <li><strong>การจัดฮวงจุ้ยแก้เคล็ดช่วง ก.ย. 69 - ก.พ. 70:</strong>
-            <br>• วาง <strong>น้ำพุ/น้ำล้นเคลื่อนไหว (Water Feature)</strong> ในทิศเหนือหรือทิศตะวันออก เพื่อดึงพลังน้ำมาขัดเกลาทอง 辛 ให้เจิดจรัส
-            <br>• ใช้โทนสี <strong>น้ำเงิน, ฟ้า, ดำ (ธาตุน้ำ)</strong> และ <strong>เขียว (ธาตุไม้)</strong> ในการแต่งกายและการตกแต่ง เพื่อถ่ายเทพลังงานส่วนเกินให้กลายเป็นทรัพย์
-          </li>
-          <li><strong>การทำบุญเสริมดวง:</strong> ถวายน้ำดื่มบริสุทธิ์, บริจาคโลหิต/เครื่องมือแพทย์ (แก้เคล็ดเรื่องผ่าตัด/ชงในเดือน พ.ย.), และปล่อยปลา/สัตว์น้ำ</li>
-        </ul>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Summary Conclusion -->
-  <div class="highlight-box" style="text-align: center; border-color: var(--secondary-gold);">
-    <h3 style="color: var(--secondary-gold); font-size: 18px; margin-bottom: 10px;">🌟 บทสรุปคำทำนายชะตาชีวิต</h3>
-    <p style="font-size: 15px; max-width: 900px; margin: 0 auto; line-height: 1.8;">
-      ดวงชะตานี้คือ <strong>"เพชรน้ำเอกในเบ้าหลอมแห่งเกียรติยศ"</strong> มีโครงสร้างไตรภาคีทอง <em>巳酉丑</em> ที่มั่นคงแข็งแกร่งดั่งหินผา 
-      ในช่วงเดือนกันยายน 2569 ถึงกุมภาพันธ์ 2570 แม้จะมีคลื่นลมแห่งการปรับเปลี่ยน (ชงคลังดินในเดือน ต.ค. และชงวังวันในเดือน พ.ย.) 
-      แต่ด้วยแรงหนุนจาก <strong>เทพอุปถัมภ์แห่งปี (午)</strong> และวัยจร <strong>ยิ้มซิ้ง (壬辰)</strong> จะแปรเปลี่ยนความท้าทายให้กลายเป็น <strong>ความสำเร็จ ชื่อเสียง และความมั่งคั่งอย่างงดงาม</strong>
-    </p>
   </div>
+</header>
 
-  <footer class="footer">
-    <p>© รายงานวิเคราะห์ดวงชะตาจีนชั้นสูงตามหลักวิชาการโหราศาสตร์ชั้นครู (BaZi, QMDJ, Ba Zhai & Da Gua)</p>
-  </footer>
-
+<div class="progress">
+  <div class="wrap">
+    <label>ความคืบหน้า: <b id="pct">0%</b></label>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+  </div>
 </div>
 
+<main>
+<div class="intro">
+  <h2>👋 สำหรับผู้ที่ไม่เคยใช้ Apps Script มาก่อน</h2>
+  <p><b>Apps Script</b> คือเครื่องมือฟรีของ Google ที่ฝังอยู่ใน Google Sheet/Docs/Slide — ให้คุณเขียนโค้ด JavaScript รันฝั่งเซิร์ฟเวอร์ของ Google ได้โดยไม่ต้องตั้งเซิร์ฟเวอร์เอง ระบบ CE F.A.I.R. ใช้ Apps Script ทำหน้าที่ "backend" ทั้งหมด (ส่งอีเมล สร้างปฏิทิน อัปโหลดไฟล์ ฯลฯ)</p>
+  <p><b>สิ่งที่คุณต้องรู้พื้นฐานมีแค่นี้:</b></p>
+  <div class="pillrow">
+    <span class="pill">📄 <b>Google Sheet</b> = ฐานข้อมูลของเรา</span>
+    <span class="pill">⚙️ <b>Apps Script</b> = สมองกล/ตรรกะ</span>
+    <span class="pill">🌐 <b>Web App</b> = หน้าเว็บที่ผู้ใช้เปิด</span>
+    <span class="pill">🔑 <b>OAuth Consent</b> = ขออนุญาตเข้าถึงบริการ Google</span>
+    <span class="pill">⏰ <b>Trigger</b> = ตั้งเวลาให้รันอัตโนมัติ</span>
+  </div>
+  <p style="margin-top:12px">📖 คู่มือนี้จะพาไปทีละคลิก — ไม่ต้องเขียนโค้ดเอง แค่ <b>คัดลอกไฟล์</b>, <b>กดปุ่ม Run</b>, <b>ตั้งค่า</b> ตามลำดับ หากติดขัดข้อไหน ดู <a href="#s16">Troubleshooting (ข้อ 16)</a> ท้ายเอกสาร</p>
+</div>
+
+<div class="toc">
+<h2>🧭 สารบัญ</h2>
+<ol>
+<li><a href="#s1">ข้อ 1 — เตรียมบัญชี Google และสิทธิ์</a></li>
+<li><a href="#s2">ข้อ 2 — สร้าง Google Sheet ใหม่</a></li>
+<li><a href="#s3">ข้อ 3 — เปิด Apps Script เตรียมโปรเจกต์</a></li>
+<li><a href="#s4">ข้อ 4 — คัดลอกไฟล์ซอร์สทั้ง 6 ไฟล์</a></li>
+<li><a href="#s5">ข้อ 5 — ตั้ง manifest / OAuth Scopes</a></li>
+<li><a href="#s6">ข้อ 6 — สร้างฐานข้อมูลด้วย <code>initDatabase()</code></a></li>
+<li><a href="#s7">ข้อ 7 — กรกข้อมูลพื้นฐาน: Rooms, Advisor, DivisionStaff, LabHead, Admin</a></li>
+<li><a href="#s8">ข้อ 8 — ตั้ง Script Properties</a></li>
+<li><a href="#s9">ข้อ 9 — ปรับ Settings (อีเมล, prefix, retention)</a></li>
+<li><a href="#s10">ข้อ 10 — ติดตั้ง Trigger รายวัน</a></li>
+<li><a href="#s11">ข้อ 11 — รัน validation ก่อน Deploy</a></li>
+<li><a href="#s12">ข้อ 12 — Deploy เวอร์ชันทดสอบ</a></li>
+<li><a href="#s13">ข้อ 13 — OAuth Consent + Smoke Test</a></li>
+<li><a href="#s14">ข้อ 14 — Deploy Production + จด Deployment ID</a></li>
+<li><a href="#s15">ข้อ 15 — บำรุงรักษาประจำ: Backup, ตรวจสิทธิ์, ความปลอดภัย</a></li>
+<li><a href="#s16">ข้อ 16 — Troubleshooting ปัญหาที่พบบ่อย</a></li>
+<li><a href="#appendix">📊 ภาคผนวก: โครงสร้างทุกคอลัมน์ในทุกชีต</a></li>
+</ol>
+</div>
+
+<div class="step" id="s1">
+  <div class="step-h"><div class="num">1</div><div><h2>เตรียมบัญชี Google กับสิทธิ์ที่ต้องมี</h2><small>~5 นาที</small></div></div>
+  <div class="step-b">
+    <ul>
+      <li>ใช้บัญชี Google ขององค์กร (โดเมนเดียวกับแม่แบบ) เพื่อให้ <code>webapp.access=DOMAIN</code> ทำงานถูก</li>
+      <li>ขอสิทธิ์ Editor บน Spreadsheet ใหม่ + เข้า Apps Script Editor ได้</li>
+      <li>ยืนยันรายชื่อ: Owner (ผู้ดูแลหลัก) / Editor (ผู้ช่วย) / Viewer (เจ้าหน้าที่ตรวจ)</li>
+    </ul>
+    <div class="note">💡 แนะนำ ตั้งบัญชี Service Owner ร่วมกัน (เช่น <code>lab-admin@org.ac.th</code>) เพื่อไม่ให้เฉพาะบุคคลเดียวค้นหาไฟล์</div>
+    <div class="ok">✅ Checkpoint: ผู้ดูแล + สิทธิ์พร้อม</div>
+  </div>
+</div>
+
+<div class="step" id="s2">
+  <div class="step-h"><div class="num">2</div><div><h2>สร้าง Google Sheet ใหม่</h2><small>~3 นาที</small></div></div>
+  <div class="step-b">
+    <ol>
+      <li>ไปที่ <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> → Blank</li>
+      <li>ตั้งชื่อ เช่น <code>CE-FAIR-SCI-B02</code></li>
+      <li>เก็บ Spreadsheet ID จาก URL (ระหว่าง <code>/d/</code> กับ <code>/edit</code>)</li>
+    </ol>
+    <div class="ok">✅ Checkpoint: Spreadsheet พร้อม + ID จดไว้</div>
+  </div>
+</div>
+
+<div class="step" id="s3">
+  <div class="step-h"><div class="num">3</div><div><h2>เปิด Apps Script เตรียมโปรเจกต์</h2><small>~3 นาที</small></div></div>
+  <div class="step-b">
+    <ol>
+      <li>เปิด Sheet ใหม่ → <b>Extensions → Apps Script</b></li>
+      <li>เปลี่ยนชื่อโปรเจกต์ เช่น <code>CE-FAIR-B02</code></li>
+      <li>สร้างไฟล์เปรียง: Code.gs, Index.html, JavaScript.html, Stylesheet.html, ReviewModal.html</li>
+    </ol>
+    <div class="note">💡 ถ้าใช้ clasp ก็ clone แล้วปรับ scriptId ไปที่โปรเจกต์ใหม่</div>
+  </div>
+</div>
+
+<div class="step" id="s4">
+  <div class="step-h"><div class="num">4</div><div><h2>คัดลอกไฟล์ซอร์สทั้ง 6 ไฟล์</h2><small>~10 นาที</small></div></div>
+  <div class="step-b">
+    <table>
+      <tr><th>ไฟล์</th><th>หน้าที่</th><th>จำเป็นไหม</th></tr>
+      <tr><td><code>Code.gs</code></td><td>Backend, schema, token security</td><td>บังคับ</td></tr>
+      <tr><td><code>Index.html</code></td><td>Container 2 แท็บ + include</td><td>บังคับ</td></tr>
+      <tr><td><code>JavaScript.html</code></td><td>Frontend Vue, cache, components</td><td>บังคับ</td></tr>
+      <tr><td><code>Stylesheet.html</code></td><td>ธีม + responsive</td><td>บังคับ</td></tr>
+      <tr><td><code>ReviewModal.html</code></td><td>Modal ดูรายละเอียด/อนุมัติ</td><td>บังคับ</td></tr>
+      <tr><td><code>appsscript.json</code></td><td>Runtime, Web App, Scopes</td><td>บังคับ</td></tr>
+      <tr><td><code>validate.js</code></td><td>ตรวจก่อน deploy</td><td>แนะนำ</td></tr>
+    </table>
+    <div class="note">🧾 ใช้ clasp: ตั้ง <code>.claspignore</code> ให้ push เฉพาะ 6 ไฟล์นี้</div>
+    <div class="danger">⛔ ก่อนนำเข้าตรวจให้แน่ใจ — อย่าให้มี secret/API key หลงค้างอยู่ในโค้ด</div>
+  </div>
+</div>
+
+<div class="step" id="s5">
+  <div class="step-h"><div class="num">5</div><div><h2>ตั้ง manifest / OAuth Scopes</h2><small>~3 นาที</small></div></div>
+  <div class="step-b">
+    <pre>{
+  "timeZone": "Asia/Bangkok",
+  "dependencies": {"enabledAdvanced": []},
+  "executionApi": {"version": "V8"},
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/script.scriptapp",
+    "https://www.googleapis.com/auth/script.send_mail"
+  ],
+  "webapp": {"executeAs": "USER_ACCESSING", "access": "DOMAIN"}
+}</pre>
+    <div class="note">💡 ทุกครั้งที่ปรับ scopes ให้ deploy test → reconsent ก่อน production</div>
+  </div>
+</div>
+
+<div class="step" id="s6">
+  <div class="step-h"><div class="num">6</div><div><h2>สร้างฐานข้อมูลด้วย <code>initDatabase()</code></h2><small>~5 นาที</small></div></div>
+  <div class="step-b">
+    <ol>
+      <li>Apps Script Editor → ฟังก์ชัน <code>initDatabase</code> → Run</li>
+      <li>สร้างชีต 10 แท็บ: Requests, Users, Rooms, Settings, RoomClosures, Advisor, DivisionStaff, LabHead, Admin, Logs</li>
+      <li>เติม metadata columns ต่อท้าย Requests (12 คอลัมน์ token metadata)</li>
+      <li>ตรวจผล log ใน Logs sheet</li>
+    </ol>
+    <div class="ok">✅ Checkpoint: 10 ชีต + Requests ครบ 61 คอลัมน์</div>
+  </div>
+</div>
+<div class="step" id="s7">
+  <div class="step-h"><div class="num">7</div><div><h2>ใส่ข้อมูลพื้นฐาน: Rooms, Advisor, DivisionStaff, LabHead, Admin</h2><small>~15 นาที · <span class="time">5 ชีต</span></small></div></div>
+  <div class="step-b">
+    <span class="newbie">🟡 สำหรับมือใหม่</span>
+    <p>หลังจากข้อ 6 ระบบจะสร้างชีตว่างๆ ไว้ 10 แท็บ แต่ยังไม่มีข้อมูล — ขั้นตอนนี้คือการ <b>เพิ่มข้อมูลอ้างอิง</b> (master data) ที่ระบบจะใช้ตรวจสิทธิ์/ส่งอีเมล/แสดง dropdown</p>
+
+    <h3>📍 ขั้นที่ 1: กลับไปที่ Google Sheet ของอาคารใหม่</h3>
+    <p>เปิด Sheet <code>CE-FAIR-XXX</code> ที่สร้างไว้ในข้อ 2 — จะเห็นชีต 10 แท็บเรียงกัน</p>
+    <div class="mock">
+      <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">CE-FAIR-SCI-B02 — Google Sheets</span></div>
+      <div class="body">
+<span class="c">แท็บด้านล่าง:</span>
+<span class="v">Requests</span> | <span class="v">Users</span> | <span class="v">Rooms</span> | <span class="v">Settings</span> | <span class="v">RoomClosures</span> |
+<span class="k">Advisor</span> | <span class="k">DivisionStaff</span> | <span class="k">LabHead</span> | <span class="k">Admin</span> | <span class="k">Logs</span>
+      </div>
+    </div>
+
+    <h3>📍 ขั้นที่ 2: ใส่ข้อมูลชีต <code>Rooms</code></h3>
+    <p>คลิกแท็บ <code>Rooms</code> → เริ่มจาก <b>แถว 2</b> (แถว 1 คือหัวตาราง)</p>
+    <div class="substep"><div class="tag">1</div><div class="what"><b>RoomID</b><span>รหัสห้องภายใน เช่น <code>B02-LAB-301</code> (ใช้เป็น key อ้างอิง — ตั้งให้สั้นและไม่ซ้ำ)</span></div></div>
+    <div class="substep"><div class="tag">2</div><div class="what"><b>RoomName</b><span>ชื่อห้องเต็ม เช่น "ปฏิบัติการเทคนิคโยธา 1"</span></div></div>
+    <div class="substep"><div class="tag">3</div><div class="what"><b>Building / Floor</b><span>อาคารและชั้น ใช้แสดงผลในหน้าเว็บ</span></div></div>
+    <div class="substep"><div class="tag">4</div><div class="what"><b>Capacity</b><span>ความจุ (คน) ใส่ตัวเลข เช่น <code>30</code></span></div></div>
+    <div class="substep"><div class="tag">5</div><div class="what"><b>Facilities</b><span>อุปกรณ์/สิ่งอำนวยความสะดวก เช่น "โปรเจคเตอร์, เครื่องทดสอบ"</span></div></div>
+    <div class="substep"><div class="tag">6</div><div class="what"><b>LabHeadEmail</b><span>อีเมลหัวหน้าห้อง (ต้องตรงกับชีต LabHead)</span></div></div>
+    <div class="substep"><div class="tag">7</div><div class="what"><b>ImageURL / Status</b><span>ลิงก์รูปภาพห้อง (optional) / สถานะ <code>Active</code> หรือ <code>Inactive</code></span></div></div>
+    <div class="tip"><strong>เคล็ดลับ</strong>คัดลอกข้อมูลจาก Sheet ตัวอย่างของแม่แบบเดิมได้เลย แล้ว <b>แก้เฉพาะชื่อ/อาคาร/ห้อง</b> ให้ตรงกับอาคารใหม่</div>
+
+    <h3>📍 ขั้นที่ 3: ใส่ข้อมูลชีต <code>Advisor</code></h3>
+    <p>อาจารย์ที่ปรึกษาที่จะอนุมัติขั้นที่ 1 — ใส่ 1 คนต่อแถว</p>
+    <table>
+      <tr><th>Email</th><th>ชื่อ-สกุล</th><th>สาขา</th></tr>
+      <tr><td><code>advisor1@kku.ac.th</code></td><td>ผศ.ดร. สมชาย ใจดี</td><td>วิศวกรรมโยธา</td></tr>
+      <tr><td><code>advisor2@kku.ac.th</code></td><td>รศ.ดร. สมหญิง เก่งกล้า</td><td>วิศวกรรมโยธา</td></tr>
+    </table>
+    <div class="note"><strong>ทำไมต้องใส่ที่นี่?</strong>เพราะระบบจะใช้อีเมลนี้ตรวจว่า "ผู้ที่กดลิงก์อนุมัติ คืออาจารย์ที่ปรึกษาจริงไหม" — ถ้าอีเมลไม่ตรง ระบบจะปฏิเสธ</div>
+
+    <h3>📍 ขั้นที่ 4: ใส่ข้อมูลชีต <code>DivisionStaff</code> / <code>LabHead</code> / <code>Admin</code></h3>
+    <p>ทำคล้ายกัน — แต่ละชีตเก็บอีเมลผู้มีสิทธิ์อนุมัติในแต่ละขั้น:</p>
+    <table>
+      <tr><th>ชีต</th><th>ความหมาย</th><th>ตัวอย่าง Email</th></tr>
+      <tr><td><code>DivisionStaff</code></td><td>เจ้าหน้าที่สาขา (อนุมัติขั้น 2)</td><td><code>staff-ce@kku.ac.th</code></td></tr>
+      <tr><td><code>LabHead</code></td><td>หัวหน้าห้องปฏิบัติการ (อนุมัติขั้น 3)</td><td><code>labhead-ce@kku.ac.th</code></td></tr>
+      <tr><td><code>Admin</code></td><td>ผู้ดูแลระบบ (อนุมัติขั้น 4 + จัดการทั้งหมด)</td><td><code>admin-ce@kku.ac.th</code></td></tr>
+    </table>
+    <div class="danger"><strong>ระวัง</strong>อย่าใส่อีเมลส่วนบุคคลที่ลาออกไปแล้ว — หากยังไม่แน่ใจ ใส่เฉพาะอีเมลกลุ่ม/ตำแหน่ง แล้วค่อยเพิ่มรายชื่อทีหลัง</div>
+
+    <h3>📍 ขั้นที่ 5: (ถ้ามี) ชีต <code>Users</code> สำหรับ sync จาก Google Workspace</h3>
+    <p>ปกติระบบจะดึงรายชื่อจาก Session ของผู้ใช้ตอน login — ชีตนี้ใช้เก็บ mapping เพิ่มเติม เช่น role เฉพาะ นักศึกษา/บุคลากร</p>
+
+    <div class="ok"><strong>Checkpoint</strong>เปิด Sheet แต่ละแท็บแล้วเห็นข้อมูลครบ — ลองกรองคอลัมน์ Email ดูว่าไม่มีช่องว่าง/ตัวสะกดผิด</div>
+
+    <ul class="checklist">
+      <li><span>ชีต Rooms มีข้อมูลห้องอย่างน้อย 1 แถว</span></li>
+      <li><span>ชีต Advisor มีอีเมลอาจารย์ครบ</span></li>
+      <li><span>ชีต DivisionStaff / LabHead / Admin มีอีเมลครบ 4 ขั้น</span></li>
+      <li><span>ตรวจสะกดอีเมลทุกช่อง (typo = หายงาน)</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="step" id="s8">
+  <div class="step-h"><div class="num">8</div><div><h2>ตั้ง Script Properties (ORG_API_KEY, BIOMETRIC_*)</h2><small>~5 นาที</small></div></div>
+  <div class="step-b">
+    <p>Apps Script Editor → Project Settings → Script Properties → Add property:</p>
+    <table>
+      <tr><th>Key</th><th>ความหมาย</th><th>หมายเหตุ</th></tr>
+      <tr><td><code>ORG_API_KEY</code></td><td>KKU Gen AI Key</td><td>ใช้ AI/Chatbot เท่านั้น</td></tr>
+      <tr><td><code>BIOMETRIC_API_URL</code></td><td>Webhook URL สแกน Biometric</td><td>ถ้ามีการเชื่อมต่อ</td></tr>
+      <tr><td><code>BIOMETRIC_WEBHOOK_SECRET</code></td><td>shared secret Webhook</td><td>จำเป็นสำหรับ Webhook</td></tr>
+    </table>
+    <div class="danger">⛔ ห้ามใส่ค่าจริงในซอร์ส/เอกสาร — เก็บ Script Properties เท่านั้น</div>
+  </div>
+</div>
+
+<div class="step" id="s9">
+  <div class="step-h"><div class="num">9</div><div><h2>ปรับ Settings (อีเมล, prefix, retention)</h2><small>~5 นาที · <span class="time">ชีต Settings</span></small></div></div>
+  <div class="step-b">
+    <span class="newbie">🟡 สำหรับมือใหม่</span>
+    <p>ชีต <code>Settings</code> คือ <b>ศูนย์กลางค่าตั้งค่า</b> ของระบบ — แทนที่จะฝังในโค้ด เราเก็บไว้ใน Sheet เพื่อให้ผู้ดูแลปรับได้โดยไม่ต้องแก้โค้ด</p>
+
+    <h3>📍 ขั้นที่ 1: เปิดชีต <code>Settings</code></h3>
+    <p>กลับไปที่ Google Sheet → คลิกแท็บ <code>Settings</code> ด้านล่าง</p>
+
+    <div class="mock">
+      <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">CE-FAIR-SCI-B02 — Settings</span></div>
+      <div class="body">
+<span class="k">A</span>: Key          <span class="k">B</span>: Value             <span class="k">C</span>: คำอธิบาย
+<span class="v">ADMIN_EMAIL</span>          admin-ce@kku.ac.th       อีเมล Admin หลัก
+<span class="v">REQUEST_ID_PREFIX</span>     B02-                     prefix รหัสคำขอ
+<span class="v">DATA_RETENTION_MONTHS</span> 12                       เก็บข้อมูลกี่เดือน
+      </div>
+    </div>
+
+    <h3>📍 ขั้นที่ 2: ค่าที่ต้องตั้งใหม่ทุกครั้ง</h3>
+    <p>ตั้งค่าต่อไปนี้ให้ตรงกับอาคาร/หน่วยงานใหม่ — ที่เหลือใช้ค่า default จากแม่แบบได้</p>
+    <table>
+      <tr><th>Key</th><th>ตัวอย่าง Value</th><th>คำอธิบาย</th></tr>
+      <tr><td><code>ADMIN_EMAIL</code></td><td><code>admin-ce-b02@kku.ac.th</code></td><td>อีเมล Admin หลักที่จะรับแจ้งเตือนข้อผิดพลาด/คำขอที่ต้องตรวจ</td></tr>
+      <tr><td><code>HEAD_OF_CIVIL_ENG_EMAIL</code></td><td><code>head-ce-b02@kku.ac.th</code></td><td>หัวหน้าสาขา/อาคาร (ใช้ในอีเมลบางสถานการณ์)</td></tr>
+      <tr><td><code>REQUEST_ID_PREFIX</code></td><td><code>B02-</code></td><td>prefix รหัสคำขอ เช่น <code>B02-20251015-001</code> — ตั้งให้ไม่ซ้ำกับอาคารอื่น</td></tr>
+      <tr><td><code>DATA_RETENTION_MONTHS</code></td><td><code>12</code></td><td>เก็บข้อมูลคำขอ/รูปภาพกี่เดือนก่อนลบ (ค่าแนะนำ: 12 สำหรับงานทั่วไป, 24 สำหรับงานวิจัย)</td></tr>
+      <tr><td><code>TIMEZONE</code></td><td><code>Asia/Bangkok</code></td><td>เขตเวลา (ปกติไม่ต้องเปลี่ยน)</td></tr>
+      <tr><td><code>TOKEN_EXPIRY_DAYS</code></td><td><code>7</code></td><td>token อนุมัติหมดอายุกี่วัน</td></tr>
+      <tr><td><code>APPROVAL_REMINDER_DAYS</code></td><td><code>3</code></td><td>แจ้งเตือนผู้อนุมัติทุกกี่วันหากค้าง</td></tr>
+      <tr><td><code>PHOTO_MAX_SIZE_MB</code></td><td><code>5</code></td><td>ขนาดไฟล์รูปสูงสุด (MB) — backend จะปฏิเสธไฟล์เกิน</td></tr>
+    </table>
+
+    <div class="tip"><strong>เคล็ดลับ</strong>หากต้องการเปลี่ยน <code>DATA_RETENTION_MONTHS</code> ภายหลัง ระบบจะใช้ค่าใหม่ในการรันครั้งถัดไป (ทุกวัน 02:00) — ไม่กระทบข้อมูลเก่าทันที</div>
+
+    <h3>📍 ขั้นที่ 3: (ไม่บังคับ) ค่าที่ใช้บ่อย</h3>
+    <ul>
+      <li><code>SUPPORT_PHONE</code> — เบอร์โทรติดต่อเจ้าหน้าที่ แสดงในหน้าช่วยเหลือ</li>
+      <li><code>SUPPORT_EMAIL</code> — อีเมลสำหรับผู้ใช้ติดต่อสอบถาม</li>
+      <li><code>ANNOUNCEMENT_BANNER</code> — ข้อความประชาสัมพันธ์ (ถ้ามี) แสดงบนหน้าเว็บ</li>
+    </ul>
+
+    <div class="ok"><strong>Checkpoint</strong>เปิดชีต <code>Settings</code> แล้วเห็นแถวข้อมูลครบทุก key — ลองค้นหา <code>ADMIN_EMAIL</code> ด้วย Ctrl+F ยืนยันว่าตั้งค่าถูกต้อง</div>
+
+    <div class="danger"><strong>ระวัง</strong>อย่าลบแถวในชีต Settings โดยไม่ตั้งใจ — ถ้าลบ key ที่จำเป็น ระบบจะใช้ค่า default แทน ซึ่งอาจไม่ตรงกับอาคารใหม่</div>
+
+    <ul class="checklist">
+      <li><span>ตั้ง ADMIN_EMAIL ของอาคารใหม่</span></li>
+      <li><span>ตั้ง REQUEST_ID_PREFIX ที่ไม่ซ้ำกับอาคารอื่น</span></li>
+      <li><span>ตั้ง DATA_RETENTION_MONTHS ตามนโยบายองค์กร</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="step" id="s10">
+  <div class="step-h"><div class="num">10</div><div><h2>ติดตั้ง Trigger รายวัน</h2><small>~5 นาที · <span class="time">ฟังก์ชันใน Apps Script</span></small></div></div>
+  <div class="step-b">
+    <span class="newbie">🟡 สำหรับมือใหม่</span>
+    <p><b>Trigger</b> คือ "นาฬิกาปลุก" ที่บอกให้ Apps Script รันฟังก์ชันอัตโนมัติตามเวลาที่ตั้ง — ไม่ต้องเปิดเครื่องทิ้งไว้ Google จะรันให้เอง</p>
+
+    <h3>📍 ขั้นที่ 1: เปิด Apps Script Editor</h3>
+    <p>จาก Google Sheet → <b>Extensions → Apps Script</b> (เหมือนข้อ 3)</p>
+    <div class="mock">
+      <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">CE-FAIR-SCI-B02 — Apps Script</span></div>
+      <div class="body">
+<span class="c">// Editor จะเปิดแท็บใหม่ มีไฟล์:</span>
+<span class="v">📄 Code.gs</span>           <span class="c">← ไฟล์ที่คัดลอกมาจากข้อ 4</span>
+<span class="v">📄 Index.html</span>        <span class="c">← หน้าเว็บ</span>
+<span class="v">📄 JavaScript.html</span>
+<span class="v">📄 Stylesheet.html</span>
+<span class="v">📄 ReviewModal.html</span>
+      </div>
+    </div>
+
+    <h3>📍 ขั้นที่ 2: เลือกฟังก์ชัน <code>setupDailyTriggers</code></h3>
+    <ol>
+      <li>ในแถบด้านบนของ Editor จะมี <b>dropdown</b> ข้างปุ่ม ▶️ Run — ให้คลิกแล้วเลือก <code>setupDailyTriggers</code> (พิมพ์ค้นหาได้)</li>
+      <li>กดปุ่ม <b>▶️ Run</b></li>
+      <li>ครั้งแรก Google จะขอ <b>Authorize access</b> → กด <b>Review Permissions</b> → เลือกบัญชี → <b>Allow</b></li>
+    </ol>
+    <div class="mock">
+      <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">Apps Script Editor</span></div>
+      <div class="body">
+<span class="c">ฟังก์ชัน:</span>  [<span class="v">setupDailyTriggers</span> ▼]  <span class="btn">▶️ Run</span>
+
+<span class="c">↓ ครั้งแรกจะเห็น popup:</span>
+┌─────────────────────────────────────┐
+│ <span class="v">Authorization required</span>           │
+│ This project requires your permission │
+│ to access your data.                  │
+│ [<span class="btn">Review Permissions</span>]              │
+└─────────────────────────────────────┘
+      </div>
+    </div>
+
+    <div class="danger"><strong>ถ้าเจอหน้า "This app isn't verified"</strong>ไม่ต้องตกใจ — เพราะ Apps Script ที่เราเขียนเองยังไม่ผ่าน Google verification (ใช้เวลานาน) ให้กด <b>Advanced → Go to (project name) (unsafe)</b> แล้ว <b>Allow</b> ได้เลย ปลอดภัยเพราะเป็นโค้ดที่เราเขียน/คัดลอกเอง</div>
+
+    <h3>📍 ขั้นที่ 3: ตรวจผลลัพธ์</h3>
+    <p>หลังรันเสร็จ ดู <b>Execution log</b> ด้านล่าง — ถ้าสำเร็จจะเห็นข้อความ:</p>
+    <pre>{
+  "success": true,
+  "triggers": [
+    {"function": "updateExpiredRequests", "schedule": "ทุกวัน 01:00"},
+    {"function": "sendPendingApprovalReminders", "schedule": "ทุกวัน 08:00"},
+    {"function": "applyDataRetentionPolicy", "schedule": "ทุกวัน 02:00"}
+  ]
+}</pre>
+
+    <h3>📍 ขั้นที่ 4: ตรวจใน Triggers panel</h3>
+    <p>คลิกไอคอน <b>⏰ (Triggers)</b> ที่แถบซ้ายของ Editor → จะเห็นรายการ Trigger ที่ติดตั้ง:</p>
+    <table>
+      <tr><th>ฟังก์ชัน</th><th>เวลา</th><th>ทำหน้าที่</th></tr>
+      <tr><td><code>updateExpiredRequests</code></td><td>ทุกวัน 01:00</td><td>เปลี่ยนสถานะคำขอที่หมดเวลา → Expired</td></tr>
+      <tr><td><code>applyDataRetentionPolicy</code></td><td>ทุกวัน 02:00</td><td>ลบรูป/ข้อมูลเก่าเกิน retention</td></tr>
+      <tr><td><code>sendPendingApprovalReminders</code></td><td>ทุกวัน 08:00</td><td>ส่งอีเมลเตือนผู้อนุมัติที่ค้าง</td></tr>
+    </table>
+
+    <div class="tip"><strong>ถ้ารันแล้วไม่เห็น Trigger</strong>ให้ดูในแท็บ <b>Executions</b> (ไอคอน ⏱️) — ถ้าเห็น <code>Failed</code> ให้คลิกเข้าไปดู error แล้วแก้ตามนั้น ปัญหาที่พบบ่อย: สิทธิ์ OAuth ไม่ครบ (ดูข้อ 13) หรือโค้ดมี syntax error</div>
+
+    <div class="note"><strong>หมายเหตุ</strong>Trigger จะรันตาม <b>เขตเวลาของโปรเจกต์</b> (ตั้งใน appsscript.json — ปกติ <code>Asia/Bangkok</code>) หากต้องการเปลี่ยนเวลา ให้ลบ trigger เดิมใน Triggers panel แล้วรัน <code>setupDailyTriggers()</code> ใหม่หลังแก้โค้ด</div>
+
+    <ul class="checklist">
+      <li><span>เลือก setupDailyTriggers ใน dropdown</span></li>
+      <li><span>กด ▶️ Run + อนุญาตสิทธิ์</span></li>
+      <li><span>ดู Execution log → success: true</span></li>
+      <li><span>ตรวจ Triggers panel เห็น 3 รายการ</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="step" id="s11">
+  <div class="step-h"><div class="num">11</div><div><h2>รัน validation ก่อน Deploy</h2><small>~2 นาที (ถ้าใช้ clasp/Git)</small></div></div>
+  <div class="step-b">
+    <pre>node validate.js
+# หรือ
+npm run validate</pre>
+    <p>ตรวจ: ไฟล์ครบ, syntax OK, <code>webapp.access=DOMAIN</code>, ไม่มี secret/ต้องห้าม pattern, Q&A=50, components, functions, brace balance, token headers</p>
+    <div class="ok">✅ Checkpoint: แสดง <code>ALL CHECKS PASSED</code> (exit 0)</div>
+  </div>
+</div>
+<div class="step" id="s12">
+  <div class="step-h"><div class="num">12</div><div><h2>Deploy เวอร์ชันทดสอบ (Test Web App)</h2><small>~5 นาที</small></div></div>
+  <div class="step-b">
+    <ol>
+      <li>Apps Script → <b>Deploy → New deployment → Web app</b></li>
+      <li>Execute as: <b>User accessing</b> / Access: <b>Anyone within domain</b></li>
+      <li>คัดลอก <b>Web App URL</b> ไปใช้ทดลองก่อน</li>
+    </ol>
+    <div class="note">💡 อย่า deploy production ก่อนทดสอบเสมอ</div>
+  </div>
+</div>
+
+<div class="step" id="s13">
+  <div class="step-h"><div class="num">13</div><div><h2>OAuth Consent + Smoke Test ครบทุก service</h2><small>อย่า deploy production ก่อนครบ</small></div></div>
+  <div class="step-b">
+    <ul>
+      <li>☐ Consent screen แสดง scope ตาม manifest</li>
+      <li>☐ ส่งอีเมล submit สำเร็จ (Logs Email = Success)</li>
+      <li>☐ Calendar: Biometric Event สร้างแล้ว</li>
+      <li>☐ Drive upload ได้ (whitelist, &lt;5MB) และ reject mime อื่น</li>
+      <li>☐ Webhook พร้อมส่ง (ถ้าตั้ง secret)</li>
+      <li>☐ Execution logs: ไม่มี ERROR</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step" id="s14">
+  <div class="step-h"><div class="num">14</div><div><h2>Deploy Production + จด Deployment ID / Git tag</h2><small>~5 นาที</small></div></div>
+  <div class="step-b">
+    <ul>
+      <li>Deploy → New deployment (production)</li>
+      <li>จด <code>deploymentId</code> / Web App URL</li>
+      <li>ถ้าใช้ Git: commit → <code>git tag v1.0-bXX</code></li>
+      <li>แจ้ง maintainers ให้ backup revision ไว้</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step" id="s15">
+  <div class="step-h"><div class="num">15</div><div><h2>บำรงรักษาประจำ: Backup, ตรวจสิทธิ์, ความปลอดภัย</h2><small>weekly/monthly/annual</small></div></div>
+  <div class="step-b">
+    <ul>
+      <li><b>Backup Sheet</b> — ทุกสัปดาห์ (manual copy หรือ trigger <code>DriveApp.makeCopy()</code>)</li>
+      <li><b>ทบทวนสิทธิ์ Admin</b> — annual: ตัด Admin/DivisionStaff ที่ลาออก + rotate WEBHOOK_SECRET</li>
+      <li><b>ตรว Logs</b> — ทุกสัปดาห์ ดูผล retention job ทำงานครบ</li>
+    </ul>
+  </div>
+</div>
+
+<div class="step" id="s16">
+  <div class="step-h"><div class="num">16</div><div><h2>Troubleshooting ปัญหาที่พบบ่อย</h2><small>ปัญหาหลัก</small></div></div>
+  <div class="step-b">
+    <table>
+      <tr><th>อาการ</th><th>สาเหตุ</th><th>วิธีแก้</th></tr>
+      <tr><td>verifyToken ล็อก</td><td>failed attempts ครบ 5</td><td>Reset FailedAttempts col → 0 (Admin)</td></tr>
+      <tr><td>ไฟล์รูป 403</td><td>file Drive restricted</td><td>ตรว folder/permissions</td></tr>
+      <tr><td>Webhook ไม่ยิง</td><td>ไม่มี WEBHOOK_SECRET</td><td>ตรว Script Properties</td></tr>
+      <tr><td>OAuth ไม่ยอม</td><td>oauthScopes ไม่ตรง manifest</td><td>redeploy Test → consent ใหม่</td></tr>
+      <tr><td>Requests header ขาด</td><td>initDatabase ยังไม่รัน</td><td>รัน + ดู Logs</td></tr>
+      <tr><td>validate fail</td><td>มี secret ในสคริปต์</td><td>ดูเช็ก forbidden patterns</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="step" id="appendix">
+  <div class="step-h"><div class="num">📊</div><div><h2>ภาคผนวก: โครงสร้างทุกคอลัมน์ในทุกชีต</h2><small>รายละเอียดทั้งหมดจาก schema ใน <code>Code.gs</code></small></div></div>
+  <div class="step-b">
+    <span class="newbie">🟡 สำหรับมือใหม่</span>
+    <p>ตารางด้านล่างคือ <b>ทุกคอลัมน์</b>ที่ระบบสร้างให้อัตโนมัติเมื่อรัน <code>initDatabase()</code> คอลัมน์ที่เขียนว่า "ระบบเติม" หมายถึง <b>ไม่ต้องกรอก</b> ปล่อยให้ระบบจัดการเอง</p>
+    <div class="tip"><strong>สัญลักษณ์</strong>🟢 = ผู้ใช้/ระบบกรอก · 🟡 = ระบบเติมอัตโนมัติ · ⚪ = ไม่บังคับ · 🔴 = บังคับกรอก</div>
+
+    <h3>📋 ชีต 1: <code>Requests</code> — ตารางคำขอหลัก (61 คอลัมน์)</h3>
+    <p><b>ผู้ดูแลไม่ต้องกรอก</b> — ระบบจัดการให้ทั้งหมด</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th><th>ใครกรอก</th></tr>
+      <tr><td>1–2</td><td><code>RequestID</code>, <code>Timestamp</code></td><td>รหัสคำขอ เช่น <code>REQ-00001</code> / วันเวลา submit</td><td>🟡 ระบบ</td></tr>
+      <tr><td>3–9</td><td><code>ApplicantID</code>–<code>Phone</code></td><td>รหัสผู้ใช้, ชื่อ, อีเมล, ประเภท (<code>Student</code>/<code>Staff</code>/<code>External</code>), ภาควิชา, เบอร์โทร</td><td>🟢 ผู้ใช้</td></tr>
+      <tr><td>10–18</td><td><code>RoomID</code>–<code>EmergencyContact</code></td><td>รหัส/ชื่อห้อง, วัตถุประสงค์, StartDate/EndDate, AllowedTimeStart/End (เช่น 16:30-20:30), รายชื่อผู้ร่วมงาน (≥1 คน), ผู้ติดต่อฉุกเฉิน</td><td>🟢 ผู้ใช้</td></tr>
+      <tr><td>19–42</td><td>Stage1–Stage4 (6 คอลัมน์ต่อขั้น)</td><td>แต่ละขั้น: <code>ApproverEmail</code>, <code>Status</code> (Pending/Approved/Rejected/Skipped), <code>Date</code>, <code>Note</code>, <code>Token</code> (Secure Token), <code>ReminderSentAt</code></td><td>🟡 ระบบ (Note ใส่โดยผู้อนุมัติ)</td></tr>
+      <tr><td>43</td><td><code>BiometricAppointmentDate</code></td><td>วันเวลานัดสแกนลายนิ้วมือ/ใบหน้า</td><td>🟢 ผู้ใช้</td></tr>
+      <tr><td>44–46</td><td><code>BiometricStatus</code>, <code>CurrentStage</code>, <code>OverallStatus</code></td><td>สถานะชีวมิติ / ขั้นปัจจุบัน (1-4) / สถานะรวม (Pending/Approved/Rejected)</td><td>🟡 ระบบ</td></tr>
+      <tr><td>47–48</td><td><code>SignatureData</code>, <code>PhotoURL</code></td><td>Base64 PNG ลายเซ็น / URL รูป (สุ่มชื่อ, ≤5MB, JPEG/PNG/WebP)</td><td>🟢 ผู้ใช้</td></tr>
+      <tr><td>49</td><td><code>RequestToken</code></td><td>Token สำหรับผู้ขอเปิด Tracking Modal</td><td>🟡 ระบบ</td></tr>
+      <tr><td>50–61</td><td>Stage1–Stage4 <code>Token*</code> (12 คอลัมน์)</td><td>แต่ละขั้น: <code>TokenUsedAt</code>, <code>TokenFailedAttempts</code> (ล็อกเมื่อครบ 5), <code>TokenLastFailedAt</code> — <b>token security metadata</b></td><td>🟡 ระบบ</td></tr>
+    </table>
+
+    <h3>📋 ชีต 2: <code>Users</code> — ฐานข้อมูลผู้ใช้ (20 คอลัมน์)</h3>
+    <p><b>ผู้ดูแลไม่ต้องกรอก</b> — ระบบเพิ่มแถวอัตโนมัติเมื่อผู้ใช้ submit ครั้งแรก</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th></tr>
+      <tr><td>1</td><td><code>UserID</code></td><td>รหัสผู้ใช้ (auto)</td></tr>
+      <tr><td>2</td><td><code>FullName</code></td><td>ชื่อ-นามสกุล</td></tr>
+      <tr><td>3</td><td><code>Age</code></td><td>อายุ</td></tr>
+      <tr><td>4</td><td><code>PersonType</code></td><td><code>Student</code> / <code>Staff</code> / <code>External</code></td></tr>
+      <tr><td>5</td><td><code>StaffType</code></td><td><code>Academic</code> / <code>Support</code></td></tr>
+      <tr><td>6</td><td><code>StudentID</code></td><td>รหัสนักศึกษา</td></tr>
+      <tr><td>7</td><td><code>Phone</code></td><td>เบอร์โทร</td></tr>
+      <tr><td>8</td><td><code>Email</code></td><td>อีเมล</td></tr>
+      <tr><td>9</td><td><code>Department</code></td><td>ภาควิชา</td></tr>
+      <tr><td>10</td><td><code>Faculty</code></td><td>คณะ</td></tr>
+      <tr><td>11</td><td><code>Division</code></td><td>แผนก (1-7)</td></tr>
+      <tr><td>12</td><td><code>DegreeLevel</code></td><td><code>Bachelor</code> / <code>Master</code> / <code>Doctoral</code></td></tr>
+      <tr><td>13</td><td><code>ExternalOrg</code></td><td>หน่วยงานภายนอก (กรณี External)</td></tr>
+      <tr><td>14</td><td><code>ProjectTopic</code></td><td>หัวข้อวิจัย/โครงการ</td></tr>
+      <tr><td>15</td><td><code>Justification</code></td><td>ความจำเป็นในการเข้าใช้</td></tr>
+      <tr><td>16</td><td><code>AccessCode</code></td><td>รหัส 6 หลัก ใช้กับเครื่องสแกน</td></tr>
+      <tr><td>17</td><td><code>PhotoURL</code></td><td>ลิงก์รูปโปรไฟล์</td></tr>
+      <tr><td>18</td><td><code>Status</code></td><td><code>Active</code> / <code>Suspended</code> / <code>Expired</code></td></tr>
+      <tr><td>19</td><td><code>CreatedAt</code></td><td>วันที่สร้างบัญชี</td></tr>
+      <tr><td>20</td><td><code>ConsentDate</code></td><td>วันที่กดยินยอมข้อตกลง</td></tr>
+    </table>
+
+    <h3>📋 ชีต 3: <code>Advisor</code> — อาจารย์ที่ปรึกษา (6 คอลัมน์) 🔴 กรอกเอง</h3>
+    <p>ใช้สำหรับเป็นผู้อนุมัติขั้น 1 กรณีนักศึกษาในสาขา</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th><th>ตัวอย่าง</th></tr>
+      <tr><td>1</td><td><code>AdvisorID</code></td><td>รหัส (เว้นได้ ระบบ gen ให้)</td><td><code>ADV001</code></td></tr>
+      <tr><td>2</td><td><code>FullName</code></td><td>ชื่อเต็ม + ตำแหน่ง</td><td>ผศ.ดร. สมชาย ใจดี</td></tr>
+      <tr><td>3</td><td><code>Email</code></td><td>🔴 อีเมล Google Workspace</td><td><code>somchai@kku.ac.th</code></td></tr>
+      <tr><td>4</td><td><code>Division</code></td><td>สาขา/แผนก</td><td>วิศวกรรมโยธา</td></tr>
+      <tr><td>5</td><td><code>Phone</code></td><td>เบอร์โทร (ไม่บังคับ)</td><td><code>08x-xxx-xxxx</code></td></tr>
+      <tr><td>6</td><td><code>Status</code></td><td><code>Active</code> / <code>Inactive</code></td><td><code>Active</code></td></tr>
+    </table>
+
+    <h3>📋 ชีต 4: <code>DivisionStaff</code> — เจ้าหน้าที่แผนก (7 คอลัมน์) 🔴 กรอกเอง</h3>
+    <p>ผู้อนุมัติขั้น 2 ตรวจสอบวัสดุอุปกรณ์/ความปลอดภัย</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th></tr>
+      <tr><td>1</td><td><code>StaffID</code></td><td>รหัสเจ้าหน้าที่</td></tr>
+      <tr><td>2</td><td><code>FullName</code></td><td>ชื่อเต็ม</td></tr>
+      <tr><td>3</td><td><code>Email</code></td><td>🔴 อีเมล Google Workspace</td></tr>
+      <tr><td>4</td><td><code>Department</code></td><td>แผนก/ภาควิชา</td></tr>
+      <tr><td>5</td><td><code>Division</code></td><td>สายงาน</td></tr>
+      <tr><td>6</td><td><code>Phone</code></td><td>เบอร์โทร</td></tr>
+      <tr><td>7</td><td><code>Status</code></td><td><code>Active</code> / <code>Inactive</code></td></tr>
+    </table>
+
+    <h3>📋 ชีต 5: <code>LabHead</code> — หัวหน้าห้องปฏิบัติการ (7 คอลัมน์) 🔴 กรอกเอง</h3>
+    <p>ผู้อนุมัติขั้น 3 ตรวจสอบตารางการใช้ห้อง/เครื่องมือเฉพาะทาง</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th></tr>
+      <tr><td>1</td><td><code>LabHeadID</code></td><td>รหัส</td></tr>
+      <tr><td>2</td><td><code>FullName</code></td><td>ชื่อเต็ม</td></tr>
+      <tr><td>3</td><td><code>Email</code></td><td>🔴 อีเมล (ต้องตรงกับ <code>Rooms.LabHeadEmail</code>)</td></tr>
+      <tr><td>4</td><td><code>Department</code></td><td>ภาควิชา</td></tr>
+      <tr><td>5</td><td><code>ResponsibleRoomIDs</code></td><td>รหัสห้องที่ดูแล คั่นด้วยจุลภาค เช่น <code>LAB-101,LAB-102</code></td></tr>
+      <tr><td>6</td><td><code>Phone</code></td><td>เบอร์โทร</td></tr>
+      <tr><td>7</td><td><code>Status</code></td><td><code>Active</code> / <code>Inactive</code></td></tr>
+    </table>
+
+    <h3>📋 ชีต 6: <code>Admin</code> — ผู้ดูแลระบบ/หัวหน้าอาคาร (7 คอลัมน์) 🔴 กรอกเอง</h3>
+    <p>ผู้อนุมัติขั้น 4 (ขั้นสุดท้าย) ยืนยันนัดหมายสแกน Biometric</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th></tr>
+      <tr><td>1</td><td><code>AdminID</code></td><td>รหัส Admin</td></tr>
+      <tr><td>2</td><td><code>FullName</code></td><td>ชื่อเต็ม</td></tr>
+      <tr><td>3</td><td><code>Email</code></td><td>🔴 อีเมล (ต้องตรงกับ <code>Settings.ADMIN_EMAIL</code>)</td></tr>
+      <tr><td>4</td><td><code>Phone</code></td><td>เบอร์โทร</td></tr>
+      <tr><td>5</td><td><code>ResponsibleBuilding</code></td><td>อาคารที่ดูแล เช่น <code>B02</code></td></tr>
+      <tr><td>6</td><td><code>ResponsibleRoomIDs</code></td><td>รหัสห้องที่ดูแล คั่นด้วยจุลภาค หรือ <code>ALL</code></td></tr>
+      <tr><td>7</td><td><code>Status</code></td><td><code>Active</code> / <code>Inactive</code></td></tr>
+    </table>
+
+    <h3>📋 ชีต 7: <code>Rooms</code> — ห้องปฏิบัติการ (10 คอลัมน์) 🔴 กรอกเอง</h3>
+    <p>รายการห้องที่เปิดให้จองได้</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th><th>ตัวอย่าง</th></tr>
+      <tr><td>1</td><td><code>RoomID</code></td><td>🔴 รหัสห้อง (key อ้างอิงทั้งระบบ)</td><td><code>LAB-101</code></td></tr>
+      <tr><td>2</td><td><code>RoomName</code></td><td>ชื่อเต็ม</td><td>ปฏิบัติการเทคนิคโยธา 1</td></tr>
+      <tr><td>3</td><td><code>Building</code></td><td>อาคาร</td><td>B02</td></tr>
+      <tr><td>4</td><td><code>Floor</code></td><td>ชั้น</td><td>3</td></tr>
+      <tr><td>5</td><td><code>Capacity</code></td><td>ความจุ (คน)</td><td><code>30</code></td></tr>
+      <tr><td>6</td><td><code>Facilities</code></td><td>อุปกรณ์/สิ่งอำนวยความสะดวก</td><td>โปรเจคเตอร์, เครื่องทดสอบ</td></tr>
+      <tr><td>7</td><td><code>LabHeadEmail</code></td><td>🔴 อีเมลหัวหน้าห้อง (ต้องตรงกับชีต LabHead)</td><td><code>labhead@kku.ac.th</code></td></tr>
+      <tr><td>8</td><td><code>ApproverEmail</code></td><td>อีเมลเจ้าหน้าที่ดูแล (optional)</td><td><code>staff@kku.ac.th</code></td></tr>
+      <tr><td>9</td><td><code>ImageURL</code></td><td>ลิงก์รูปห้อง (optional)</td><td><code>https://...</code></td></tr>
+      <tr><td>10</td><td><code>Status</code></td><td><code>Active</code> / <code>Inactive</code></td><td><code>Active</code></td></tr>
+    </table>
+
+    <h3>📋 ชีต 8: <code>Settings</code> — ค่าตั้งค่าระบบ (4 คอลัมน์) 🔴 กรอกเอง</h3>
+    <p>ศูนย์กลางค่าตั้งค่า key-value (ดูรายละเอียดที่ <a href="#s9">ข้อ 9</a>)</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th><th>ตัวอย่าง</th></tr>
+      <tr><td>1</td><td><code>ConfigKey</code></td><td>🔴 ชื่อ key เช่น <code>ADMIN_EMAIL</code></td><td><code>REQUEST_ID_PREFIX</code></td></tr>
+      <tr><td>2</td><td><code>ConfigValue</code></td><td>🔴 ค่าที่ต้องการ</td><td><code>REQ-</code></td></tr>
+      <tr><td>3</td><td><code>Description</code></td><td>คำอธิบาย (optional)</td><td>คำนำหน้าเลขที่คำขอ</td></tr>
+      <tr><td>4</td><td><code>DataType</code></td><td><code>string</code> / <code>number</code> / <code>boolean</code></td><td><code>string</code></td></tr>
+    </table>
+
+    <h3>📋 ชีต 9: <code>RoomClosures</code> — ประกาศปิดห้อง (10 คอลัมน์) ⚪ กรอกเมื่อมีวันหยุด</h3>
+    <p>กรอก 1 แถวต่อประกาศ ระบบจะส่งอีเมลแจ้งทุกคนในชีตอัตโนมัติ</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th><th>ตัวอย่าง</th></tr>
+      <tr><td>1</td><td><code>ClosureID</code></td><td>รหัส (เว้นได้)</td><td><code>CLS-0001</code></td></tr>
+      <tr><td>2</td><td><code>Title</code></td><td>🔴 หัวข้อประกาศ</td><td>วันหยุดนักขัตฤกษ์ 1 ม.ค. 2569</td></tr>
+      <tr><td>3</td><td><code>Description</code></td><td>รายละเอียดเพิ่มเติม</td><td>ปิดทำการทั้งอาคาร</td></tr>
+      <tr><td>4</td><td><code>StartDate</code></td><td>วันเริ่มปิด (กรอกอย่างน้อยตัวใดตัวหนึ่ง Start/End)</td><td><code>01/01/2569</code></td></tr>
+      <tr><td>5</td><td><code>EndDate</code></td><td>วันสิ้นสุด</td><td><code>02/01/2569</code></td></tr>
+      <tr><td>6</td><td><code>AffectedRoomIDs</code></td><td>รหัสห้องที่ได้รับผลกระทบ คั่นจุลภาค หรือ <code>ALL</code></td><td><code>ALL</code></td></tr>
+      <tr><td>7</td><td><code>CreatedBy</code></td><td>ผู้บันทึก</td><td><code>admin@kku.ac.th</code></td></tr>
+      <tr><td>8</td><td><code>CreatedAt</code></td><td>เวลาที่บันทึก</td><td>🟡 ระบบเติม</td></tr>
+      <tr><td>9</td><td><code>Status</code></td><td><code>Active</code> / <code>Expired</code></td><td><code>Active</code></td></tr>
+      <tr><td>10</td><td><code>NotifiedAt</code></td><td>เวลาที่ส่งอีเมลแจ้งเตือน</td><td>🟡 ระบบเติม</td></tr>
+    </table>
+
+    <h3>📋 ชีต 10: <code>Logs</code> — บันทึกเหตุการณ์ (9 คอลัมน์)</h3>
+    <p>🟡 <b>ระบบเติมอัตโนมัติทั้งหมด</b> — ใช้ดูย้อนหลัง/ตรวจปัญหา ผู้ดูแลไม่ต้องกรอก</p>
+    <table>
+      <tr><th>#</th><th>Header</th><th>คำอธิบาย</th></tr>
+      <tr><td>1</td><td><code>LogID</code></td><td>รหัส log</td></tr>
+      <tr><td>2</td><td><code>Timestamp</code></td><td>วันเวลา</td></tr>
+      <tr><td>3</td><td><code>UserEmail</code></td><td>ผู้กระทำ</td></tr>
+      <tr><td>4</td><td><code>ActionType</code></td><td>ประเภท เช่น <code>Submit</code>/<code>Approve</code>/<code>Reject</code>/<code>Email</code>/<code>Calendar</code>/<code>Webhook</code></td></tr>
+      <tr><td>5</td><td><code>Action</code></td><td>รายละเอียดการกระทำ</td></tr>
+      <tr><td>6</td><td><code>TargetSheet</code></td><td>ชีตที่ถูกกระทำ เช่น <code>Requests</code></td></tr>
+      <tr><td>7</td><td><code>TargetRecordID</code></td><td>รหัสแถวที่ถูกกระทำ เช่น <code>REQ-00012</code></td></tr>
+      <tr><td>8</td><td><code>Details</code></td><td>รายละเอียดเพิ่มเติม (JSON)</td></tr>
+      <tr><td>9</td><td><code>Result</code></td><td><code>Success</code> / <code>Failed</code></td></tr>
+    </table>
+
+    <div class="ok"><strong>สรุป: ผู้ดูแลต้องกรอกเอง 6 ชีต</strong> Advisor, DivisionStaff, LabHead, Admin, Rooms, Settings (+ RoomClosures เมื่อมีวันหยุด) — ชีตที่เหลือ (Requests, Users, Logs) ระบบจัดการให้อัตโนมัติ</div>
+  </div>
+</div>
+
+<div class="ok"><b>สรุปทั้งหมด:</b> ทำครบข้อ 1–14 = อาคาร/ห้องใหม่พร้อมใช้งาน — เหลือ maintainers ดูแลประจำข้อ 15 และใช้ Troubleshooting ข้อ 16</div>
+</main>
+<footer>© CE F.A.I.R. — Deployment Guide v1.0 | เอกสารสำหรับผู้ดูแลระบบ | ไฟล์ HTML เดียวจบ</footer>
+<script>
+(function(){
+  // Progress bar — ติดตามว่าผู้อ่านเลื่อนผ่านกี่ % ของ step
+  var steps = document.querySelectorAll('.step');
+  var fill = document.getElementById('fill');
+  var pct = document.getElementById('pct');
+  function updateProgress(){
+    var scroll = window.scrollY + window.innerHeight * 0.6;
+    var last = 0;
+    steps.forEach(function(s, i){
+      if (s.offsetTop <= scroll) last = i + 1;
+    });
+    var p = Math.round(last / steps.length * 100);
+    fill.style.width = p + '%';
+    pct.textContent = p + '%';
+  }
+  window.addEventListener('scroll', updateProgress);
+  window.addEventListener('load', updateProgress);
+  updateProgress();
+
+  // Checklist — คลิกเพื่อติ๊ก/untick (เก็บสถานะใน localStorage)
+  document.querySelectorAll('.checklist').forEach(function(list, idx){
+    list.querySelectorAll('li').forEach(function(li, i){
+      var key = 'dg_step_' + idx + '_' + i;
+      if (localStorage.getItem(key) === '1') li.classList.add('done');
+      li.addEventListener('click', function(){
+        li.classList.toggle('done');
+        localStorage.setItem(key, li.classList.contains('done') ? '1' : '0');
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>
